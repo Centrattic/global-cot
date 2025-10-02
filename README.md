@@ -4,7 +4,6 @@ https://github.com/interp-reasoning/thought-anchors
 
 The plan:
 
-
 1. Start with 1 prompt, and generate like 1000 rollouts
 2. Embed all generated sentences with sentence transformer (https://huggingface.co/sentence-transformers)
 3. Set some embedding cosine similarity threshold for sentences being "equivalent"/discussing equivalent concept.  (Manually label some sentences ourselves and use that to estimate threshold? Start with arbitrary threshold).
@@ -27,3 +26,4 @@ Could we imagine a massive flowchart, where you move between classes of sentence
 
 How often do you see a genuinely new type of reasoning structure in a rollout?
 Meta: I have no idea if this is possible, but it would be very cool if someone tried.
+
