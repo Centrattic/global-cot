@@ -1,6 +1,8 @@
 import json
 from typing import Any, Dict, List, Tuple
 import re
+import os
+import glob
 
 
 def load_json(path: str) -> Any:
@@ -13,11 +15,47 @@ def write_json(path: str, data: Any) -> None:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
-def load_rollouts_fields(rollouts_path: str) -> Dict[str, List[Any]]:
-    data = load_json(rollouts_path)
-    if isinstance(data, dict) and "fields" in data:
-        return data["fields"]
-    return data
+
+def load_responses_from_folder(responses_folder: str) -> List[Dict[str, Any]]:
+    """Load all response files from the responses folder and return as list."""
+    responses = []
+    pattern = os.path.join(responses_folder, "*.json")
+    
+    for file_path in sorted(glob.glob(pattern)):
+        try:
+            response_data = load_json(file_path)
+            if isinstance(response_data, dict):
+                responses.append(response_data)
+        except Exception as e:
+            print(f"Warning: Could not load {file_path}: {e}")
+    
+    return responses
+
+
+def load_responses_as_rollouts_fields(responses_folder: str) -> Dict[str, List[Any]]:
+    """Convert responses folder to rollouts fields format for backward compatibility."""
+    responses = load_responses_from_folder(responses_folder)
+    
+    # Initialize fields
+    fields = {
+        "cot": [],
+        "response_content": [],
+        "sentences": [],
+        "index": [],
+        "seed": []
+    }
+    
+    # Sort responses by index to maintain order
+    responses.sort(key=lambda x: x.get("index", 0))
+    
+    for response in responses:
+        fields["cot"].append(response.get("cot_content", ""))
+        fields["response_content"].append(response.get("response_content", ""))
+        fields["sentences"].append(response.get("sentences", []))
+        fields["index"].append(response.get("index", 0))
+        fields["seed"].append(response.get("seed", 0))
+    
+    return fields
 
 
 def load_clusters_json(clusters_path: str) -> List[Dict[str, Any]]:

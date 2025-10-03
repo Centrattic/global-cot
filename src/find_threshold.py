@@ -11,14 +11,14 @@ from src.sentence_clustering import (
     cluster_by_cosine_threshold,
     cluster_sentences_for_prompt,
 )
-from src.utils import load_rollouts_fields, load_prompts_json
+from src.utils import load_rollouts_fields, load_responses_as_rollouts_fields, load_prompts_json
 
 #%% Minimal example scaffold
 print("Setting params...")
-rollouts_path = "/Users/jennakainic/global-cot/src/rollouts.json"
+rollouts_path = "/Users/jennakainic/global-cot/responses"
 prompts, _ = load_prompts_json("/Users/jennakainic/global-cot/src/prompts.json")
 prompt_text = prompts[0]
-out_plot = "/Users/jennakainic/global-cot/src/clusters_vs_threshold.png"
+out_plot = "/Users/jennakainic/global-cot/clusters_vs_threshold.png"
 thresholds = [0.60, 0.625, 0.65, 0.675, 0.70, 0.725, 0.75, 0.775,]
 
 #%%
@@ -63,5 +63,5 @@ for t in thresholds_to_compare:
             print(f"  {sent}")
 # %%
 # EXAMPLE - create and export clusters to json
-cluster_sentences_for_prompt(rollouts_path, prompt_text, "sentence-transformers/all-MiniLM-L6-v2", 0.72, "/Users/jennakainic/global-cot/src/clusters_0.72.json")
+cluster_sentences_for_prompt(rollouts_path, prompt_text, "sentence-transformers/all-MiniLM-L6-v2", 0.72, out_plot)
 # %%

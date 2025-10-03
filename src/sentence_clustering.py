@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Tuple, Set
 
 import matplotlib.pyplot as plt
 import numpy as np
-from .utils import load_rollouts_fields, extract_sentences
+from .utils import load_rollouts_fields, load_responses_as_rollouts_fields, extract_sentences
 
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics import silhouette_score
@@ -20,7 +20,7 @@ def gather_cot_sentences_for_prompt(
     sentence_index_to_rollout_ids maps sentence index (in the returned sentences list)
     to a set of rollout row indices where it appears.
     """
-    fields = load_rollouts_fields(rollouts_path)
+    fields = load_responses_as_rollouts_fields(rollouts_path)
     prompts: List[str] = fields.get("prompt", [])
     cots: List[str] = fields.get("cot", [])
 

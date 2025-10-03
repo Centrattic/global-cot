@@ -8,7 +8,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import re
 from typing import Any, Dict, List, Tuple, Set
-from src.utils import load_rollouts_fields, load_clusters_json, write_json, extract_sentences
+from src.utils import load_rollouts_fields, load_responses_as_rollouts_fields, load_clusters_json, write_json, extract_sentences
 
 
 def build_sentence_cluster_index(
@@ -76,7 +76,7 @@ def build_pathways(
     clusters_path: str,
 ) -> Dict[str, Any]:
     """Construct pathways, transitions, cluster stats, and metadata from inputs."""
-    fields = load_rollouts_fields(rollouts_path)
+    fields = load_responses_as_rollouts_fields(rollouts_path)
     cots: List[str] = fields.get("cot", [])
 
     clusters = load_clusters_json(clusters_path)
@@ -195,9 +195,9 @@ def build_and_write_pathways(
 
 def build_arg_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(description="Build sentence pathways from rollouts and clusters JSON")
-    p.add_argument("--rollouts", default="/Users/jennakainic/global-cot/src/rollouts.json", help="Path to rollouts.json (fields-oriented)")
-    p.add_argument("--clusters", default="/Users/jennakainic/global-cot/src/clusters_0.72.json", help="Path to clusters.json (from export_clusters_to_json)")
-    p.add_argument("--out", default="/Users/jennakainic/global-cot/src/pathways.json", help="Output pathways JSON path")
+    p.add_argument("--rollouts", default="/Users/jennakainic/global-cot/responses", help="Path to responses folder (new format) or rollouts.json file (legacy)")
+    p.add_argument("--clusters", default="/Users/jennakainic/global-cot/clusters_0.72.json", help="Path to clusters.json (from export_clusters_to_json)")
+    p.add_argument("--out", default="/Users/jennakainic/global-cot/pathways.json", help="Output pathways JSON path")
     return p
 
 

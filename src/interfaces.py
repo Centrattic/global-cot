@@ -53,4 +53,7 @@ class Node:
         def __init__(self, prompt: str):
             super().__init("prompt", 0, [prompt]) # freq is meaningless here
 
-    # TODO Do we want a pathway class?
+    class Pathway:
+        def __init__(self, nodes: List[Node], edges: List[Edge]):
+            self.nodes = nodes
+            self.edges = edges
