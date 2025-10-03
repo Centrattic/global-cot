@@ -62,7 +62,7 @@ class ActivationExtractor:
             layer_dir.mkdir(exist_ok=True)
         
         # Initialize responses folder
-        self.responses_dir = self.cache_dir / "responses"
+        self.responses_dir = "responses"
         self.responses_dir.mkdir(exist_ok=True)
     
     def extract_activations(self, prompt: str, max_tokens: int = 512, seed: int = 0) -> Dict[int, Dict[str, np.ndarray]]:
