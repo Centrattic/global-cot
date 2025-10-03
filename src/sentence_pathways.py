@@ -1,8 +1,14 @@
 import json
 import argparse
+import os
+import sys
+
+# Allow direct execution: python src/sentence_pathways.py
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 import re
 from typing import Any, Dict, List, Tuple, Set
-from .utils import load_rollouts_fields, load_clusters_json, write_json, extract_sentences
+from src.utils import load_rollouts_fields, load_clusters_json, write_json, extract_sentences
 
 
 def build_sentence_cluster_index(
@@ -189,9 +195,9 @@ def build_and_write_pathways(
 
 def build_arg_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(description="Build sentence pathways from rollouts and clusters JSON")
-    p.add_argument("--rollouts", default="/Users/jennakainic/global-cot/src/rollouts.json", required=True, help="Path to rollouts.json (fields-oriented)")
-    p.add_argument("--clusters", required=True, default="/Users/jennakainic/global-cot/src/clusters_0.72.json", help="Path to clusters.json (from export_clusters_to_json)")
-    p.add_argument("--out", required=True, default="/Users/jennakainic/global-cot/src/pathways.json", help="Output pathways JSON path")
+    p.add_argument("--rollouts", default="/Users/jennakainic/global-cot/src/rollouts.json", help="Path to rollouts.json (fields-oriented)")
+    p.add_argument("--clusters", default="/Users/jennakainic/global-cot/src/clusters_0.72.json", help="Path to clusters.json (from export_clusters_to_json)")
+    p.add_argument("--out", default="/Users/jennakainic/global-cot/src/pathways.json", help="Output pathways JSON path")
     return p
 
 
