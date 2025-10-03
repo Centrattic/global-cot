@@ -52,7 +52,40 @@ def load_prompts_json(prompts_path: str) -> Tuple[List[str], List[str]]:
 def extract_sentences(text: str) -> List[str]:
     if not text:
         return []
-    parts = re.split(r'[.!?]+\s+', text.strip())
-    return [s.strip() for s in parts if s.strip()]
+    
+    # Find all sentence boundaries (punctuation followed by space or end of string)
+    boundaries = []
+    for i, char in enumerate(text):
+        if char in '.!?' and (i + 1 >= len(text) or text[i + 1].isspace()):
+            boundaries.append(i + 1)
+    
+    # Split text at boundaries
+    sentences = []
+    start = 0
+    for boundary in boundaries:
+        sentence = text[start:boundary].strip()
+        if sentence:
+            sentences.append(sentence)
+        start = boundary
+    
+    # Handle remaining text (if no punctuation at end)
+    if start < len(text):
+        remaining = text[start:].strip()
+        if remaining:
+            sentences.append(remaining)
+    
+    # Filter out empty sentences
+    sentences = [s for s in sentences if s.strip()]
+    
+    # Merge short sentences (<=3 words) with previous sentence
+    final_sentences = []
+    for sentence in sentences:
+        word_count = len(sentence.split())
+        if word_count <= 3 and final_sentences:
+            final_sentences[-1] += " " + sentence
+        else:
+            final_sentences.append(sentence)
+    
+    return final_sentences
 
 

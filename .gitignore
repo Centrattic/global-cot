@@ -1,6 +1,6 @@
 .env
 __pycache__/
 rollouts*
-test.json
+openrouter_models.json
 activation_cache/
 unsloth_compiled_cache/

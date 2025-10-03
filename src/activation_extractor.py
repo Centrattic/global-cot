@@ -2,12 +2,14 @@ from __future__ import annotations
 import unsloth
 import json
 import re
+import argparse
 from pathlib import Path
 from typing import Dict, List, Optional, Any
 import numpy as np
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from unsloth import FastLanguageModel
+from src.utils import extract_sentences
 from openai_harmony import (
     load_harmony_encoding,
     HarmonyEncodingName,
@@ -58,6 +60,10 @@ class ActivationExtractor:
         for layer in self.layers:
             layer_dir = self.cache_dir / str(layer)
             layer_dir.mkdir(exist_ok=True)
+        
+        # Initialize responses folder
+        self.responses_dir = self.cache_dir / "responses"
+        self.responses_dir.mkdir(exist_ok=True)
     
     def extract_activations(self, prompt: str, max_tokens: int = 512, seed: int = 0) -> Dict[int, Dict[str, np.ndarray]]:
         """Extract activations for chain-of-thought tokens only."""
@@ -261,18 +267,10 @@ class ActivationExtractor:
             "seed": seed
         }
         
-        # Store completion metadata once in root directory
-        index_file = self.cache_dir / "completion_indices.json"
-        if index_file.exists():
-            with open(index_file, 'r') as f:
-                index_data = json.load(f)
-        else:
-            index_data = {}
-        
-        index_data[str(self.completion_index)] = completion_data
-        
-        with open(index_file, 'w') as f:
-            json.dump(index_data, f, indent=2)
+        # Store completion metadata in separate file
+        completion_file = self.responses_dir / f"completion_{self.completion_index}.json"
+        with open(completion_file, 'w') as f:
+            json.dump(completion_data, f, indent=2)
         
         # Store activations for each layer
         for layer, activations in layer_activations.items():
@@ -292,39 +290,7 @@ class ActivationExtractor:
     
     def _split_into_sentences(self, text: str) -> List[str]:
         """Split text into sentences, preserving punctuation and merging short sentences."""
-        # Split on sentence-ending punctuation but keep the punctuation
-        sentences = re.split(r'([.!?]+)', text)
-        
-        # Recombine sentences with their punctuation
-        combined_sentences = []
-        i = 0
-        while i < len(sentences):
-            sentence = sentences[i].strip()
-            if sentence:  # Non-empty sentence
-                # Check if next element is punctuation
-                if i + 1 < len(sentences) and re.match(r'[.!?]+', sentences[i + 1]):
-                    sentence += sentences[i + 1]  # Add punctuation
-                    i += 2  # Skip punctuation in next iteration
-                else:
-                    i += 1
-                combined_sentences.append(sentence)
-            else:
-                i += 1
-        
-        # Filter out empty sentences
-        sentences = [s for s in combined_sentences if s.strip()]
-        
-        # Merge short sentences (<=3 words) with previous sentence
-        final_sentences = []
-        for sentence in sentences:
-            word_count = len(sentence.split())
-            if word_count <= 3 and final_sentences:
-                # Merge with previous sentence
-                final_sentences[-1] += " " + sentence
-            else:
-                final_sentences.append(sentence)
-        
-        return final_sentences
+        return extract_sentences(text)
     
     def _aggregate_by_sentences(self, activations: np.ndarray, sentences: List[str], cot_content: str, cot_tokens: List[int]) -> Dict[str, np.ndarray]:
         """Aggregate activations by sentences using sequential token indexing."""
@@ -364,36 +330,91 @@ class ActivationExtractor:
             return np.load(npy_path, allow_pickle=True).item()
         return None
     
+    def debug_activation_format(self, layer: int, completion_index: int):
+        """Debug function to inspect .npy file format and structure."""
+        layer_dir = self.cache_dir / str(layer)
+        npy_path = layer_dir / f"completion_{completion_index}.npy"
+        
+        if not npy_path.exists():
+            print(f"File not found: {npy_path}")
+            return
+        
+        print(f"\n=== DEBUG: Activation file {npy_path} ===")
+        
+        # Load the .npy file
+        data = np.load(npy_path, allow_pickle=True).item()
+        
+        print(f"Data type: {type(data)}")
+        print(f"Number of sentences: {len(data)}")
+        
+        # Print structure without activation vectors
+        for i, (sentence, activation) in enumerate(data.items()):
+            print(f"\nSentence {i+1}:")
+            print(f"  Text: {sentence[:100]}{'...' if len(sentence) > 100 else ''}")
+            print(f"  Activation shape: {activation.shape}")
+            print(f"  Activation dtype: {activation.dtype}")
+            print(f"  Activation min: {activation.min():.6f}")
+            print(f"  Activation max: {activation.max():.6f}")
+            print(f"  Activation mean: {activation.mean():.6f}")
+            print(f"  Activation std: {activation.std():.6f}")
+            
+            # Show first few values (but not the whole vector)
+            if len(activation) > 10:
+                print(f"  First 10 values: {activation[:10]}")
+            else:
+                print(f"  All values: {activation}")
+        
+        print(f"\n=== END DEBUG ===\n")
+    
     def get_completion_info(self, completion_index: int) -> Optional[Dict[str, Any]]:
         """Get completion information for a specific completion."""
-        index_file = self.cache_dir / "completion_indices.json"
-        
-        if index_file.exists():
-            with open(index_file, 'r') as f:
-                index_data = json.load(f)
-            return index_data.get(str(completion_index))
+        completion_file = self.responses_dir / f"completion_{completion_index}.json"
+        if completion_file.exists():
+            with open(completion_file, 'r') as f:
+                return json.load(f)
         return None
 
 
 def main():
-    """Example usage."""
+    """Example usage with command line arguments for parallelization."""
+    parser = argparse.ArgumentParser(description='Extract activations from GPT-OSS-20B model')
+    parser.add_argument('--start', type=int, default=0, help='Start index for completion range (default: 0)')
+    parser.add_argument('--end', type=int, default=1, help='End index for completion range (default: 1)')
+    parser.add_argument('--prompt', type=str, default=None, help='Custom prompt (optional)')
+    
+    args = parser.parse_args()
+    
     extractor = ActivationExtractor()
     
     # Example prompt
-    prompt = "Solve this problem step by step: \n When the base-16 number 66666 is written in base 2, how many base-2 digits (bits) does it have? \n Think carefully but respond with only the answer."
+    if args.prompt:
+        prompt = args.prompt
+    else:
+        prompt = "Solve this problem step by step: \n When the base-16 number 66666 is written in base 2, how many base-2 digits (bits) does it have? \n Think carefully but respond with only the answer."
     
-    # Generate 5 completions with different random seeds
-    num_completions = 2
-    print(f"Generating {num_completions} completions with different random seeds...")
+    # Process completions in the specified range
+    idx_start = args.start
+    idx_end = args.end
+    num_completions = idx_end - idx_start
+    
+    print(f"Processing completions {idx_start} to {idx_end-1} (total: {num_completions})")
+    print(f"Using prompt: {prompt[:100]}{'...' if len(prompt) > 100 else ''}")
     
     # Process completions sequentially
-    for i in tqdm(range(num_completions)):
-        print(f"\n--- Processing completion {i+1}/{num_completions} (seed={i}) ---")
+    for i in tqdm(range(idx_start, idx_end)):
+        print(f"\n--- Processing completion {i} (seed={i}) ---")
         activations = extractor.extract_activations(prompt, seed=i)
         print(f"Extracted activations for {len(activations)} layers")
         
+        # Debug activation format for first completion in range
+        if i == idx_start:
+            print("\n=== DEBUGGING ACTIVATION FORMAT ===")
+            for layer in [7, 13, 17]:
+                if layer in activations:
+                    extractor.debug_activation_format(layer, i)
+            print("=== END DEBUGGING ===\n")
 
-    print(f"\nCompleted {num_completions} extractions. Check activation_cache/ for stored activations.")
+    print(f"\nCompleted {num_completions} extractions (indices {idx_start}-{idx_end-1}). Check activation_cache/ for stored activations.")
 
 
 if __name__ == "__main__":
