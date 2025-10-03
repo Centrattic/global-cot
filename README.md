@@ -1,5 +1,8 @@
 # global-cot
 
+Model: https://huggingface.co/unsloth/gpt-oss-20b-unsloth-bnb-4bit
+
+
 https://github.com/interp-reasoning/thought-anchors
 
 The plan:

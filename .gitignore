@@ -1,0 +1,6 @@
+.env
+__pycache__/
+rollouts*
+test.json
+activation_cache/
+unsloth_compiled_cache/
