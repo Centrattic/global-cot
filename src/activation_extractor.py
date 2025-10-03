@@ -258,7 +258,6 @@ class ActivationExtractor:
             "cot_content": cot_content,
             "response_content": response_content,
             "sentences": sentences,
-            "cot_tokens": cot_tokens,
             "seed": seed
         }
         
@@ -292,15 +291,43 @@ class ActivationExtractor:
         self.completion_index += 1
     
     def _split_into_sentences(self, text: str) -> List[str]:
-        """Split text into sentences based on punctuation."""
-        # Split on periods, question marks, and exclamation marks
-        sentences = re.split(r'[.!?]+', text)
-        # Filter out empty sentences and strip whitespace
-        sentences = [s.strip() for s in sentences if s.strip()]
-        return sentences
+        """Split text into sentences, preserving punctuation and merging short sentences."""
+        # Split on sentence-ending punctuation but keep the punctuation
+        sentences = re.split(r'([.!?]+)', text)
+        
+        # Recombine sentences with their punctuation
+        combined_sentences = []
+        i = 0
+        while i < len(sentences):
+            sentence = sentences[i].strip()
+            if sentence:  # Non-empty sentence
+                # Check if next element is punctuation
+                if i + 1 < len(sentences) and re.match(r'[.!?]+', sentences[i + 1]):
+                    sentence += sentences[i + 1]  # Add punctuation
+                    i += 2  # Skip punctuation in next iteration
+                else:
+                    i += 1
+                combined_sentences.append(sentence)
+            else:
+                i += 1
+        
+        # Filter out empty sentences
+        sentences = [s for s in combined_sentences if s.strip()]
+        
+        # Merge short sentences (<=3 words) with previous sentence
+        final_sentences = []
+        for sentence in sentences:
+            word_count = len(sentence.split())
+            if word_count <= 3 and final_sentences:
+                # Merge with previous sentence
+                final_sentences[-1] += " " + sentence
+            else:
+                final_sentences.append(sentence)
+        
+        return final_sentences
     
     def _aggregate_by_sentences(self, activations: np.ndarray, sentences: List[str], cot_content: str, cot_tokens: List[int]) -> Dict[str, np.ndarray]:
-        """Aggregate activations by sentences using token-based mapping."""
+        """Aggregate activations by sentences using sequential token indexing."""
         if len(activations.shape) != 3:  # Should be (batch, seq, hidden)
             print(f"Unexpected activation shape: {activations.shape}")
             return {}
@@ -309,41 +336,22 @@ class ActivationExtractor:
         activations = activations[0]  # Shape: (seq, hidden)
         
         sentence_activations = {}
+        current_index = 0
         
-        # Debug: print token information
-        print(f"[DEBUG] CoT tokens length: {len(cot_tokens)}")
-        print(f"[DEBUG] Activations shape: {activations.shape}")
-        print(f"[DEBUG] Number of sentences: {len(sentences)}")
-        
-        for i, sentence in enumerate(sentences):
-            print(f"[DEBUG] Processing sentence {i+1}: {sentence[:50]}...")
-            
-            # Tokenize the sentence using harmony encoding
+        for sentence in sentences:
+            # Tokenize the sentence to get its length
             sentence_tokens = self.enc.encode(sentence)
-            print(f"[DEBUG] Sentence tokens: {sentence_tokens}")
+            sentence_length = len(sentence_tokens)
             
-            # Find the sentence tokens in the full sequence
-            sentence_start = None
-            sentence_end = None
+            # Extract activations for this sentence's tokens
+            sentence_activations_tokens = activations[current_index:current_index + sentence_length]
             
-            # Search for the sentence tokens in the full token sequence
-            for j in range(len(cot_tokens) - len(sentence_tokens) + 1):
-                if cot_tokens[j:j + len(sentence_tokens)] == sentence_tokens:
-                    sentence_start = j
-                    sentence_end = j + len(sentence_tokens)
-                    print(f"[DEBUG] Found sentence at position {sentence_start}-{sentence_end}")
-                    break
+            # Aggregate across tokens in the sentence (mean pooling)
+            sentence_activation = np.mean(sentence_activations_tokens, axis=0)
+            sentence_activations[sentence] = sentence_activation
             
-            if sentence_start is not None and sentence_end is not None:
-                # Extract activations for this sentence's tokens
-                sentence_activations_tokens = activations[sentence_start:sentence_end]
-                
-                # Aggregate across tokens in the sentence (mean pooling)
-                sentence_activation = np.mean(sentence_activations_tokens, axis=0)
-                sentence_activations[sentence] = sentence_activation
-            else:
-                # Error if we can't find the sentence tokens - don't want wrong aggregation
-                raise ValueError(f"Could not find sentence tokens in sequence: {sentence[:50]}...")
+            # Move to next sentence
+            current_index += sentence_length
         
         return sentence_activations
     
