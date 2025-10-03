@@ -1,4 +1,5 @@
 import json
+import argparse
 import re
 from typing import Any, Dict, List, Tuple, Set
 from .utils import load_rollouts_fields, load_clusters_json, write_json, extract_sentences
@@ -185,4 +186,20 @@ def build_and_write_pathways(
     data = build_pathways(rollouts_path, clusters_path)
     write_json(out_path, data)
 
+
+def build_arg_parser() -> argparse.ArgumentParser:
+    p = argparse.ArgumentParser(description="Build sentence pathways from rollouts and clusters JSON")
+    p.add_argument("--rollouts", default="/Users/jennakainic/global-cot/src/rollouts.json", required=True, help="Path to rollouts.json (fields-oriented)")
+    p.add_argument("--clusters", required=True, default="/Users/jennakainic/global-cot/src/clusters_0.72.json", help="Path to clusters.json (from export_clusters_to_json)")
+    p.add_argument("--out", required=True, default="/Users/jennakainic/global-cot/src/pathways.json", help="Output pathways JSON path")
+    return p
+
+
+def main() -> None:
+    args = build_arg_parser().parse_args()
+    build_and_write_pathways(args.rollouts, args.clusters, args.out)
+
+
+if __name__ == "__main__":
+    main()
 
