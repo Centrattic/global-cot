@@ -5,31 +5,27 @@ from typing import Any, Dict, List, Tuple, Set
 
 import matplotlib.pyplot as plt
 import numpy as np
-from .utils import load_rollouts_fields, load_responses_as_rollouts_fields, extract_sentences
+from .utils import load_responses_as_rollouts_fields, extract_sentences
 
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics import silhouette_score
 
 
-def gather_cot_sentences_for_prompt(
+def gather_cot_sentences(
     rollouts_path: str,
-    prompt_text: str,
 ) -> Tuple[List[str], Dict[int, Set[int]]]:
-    """Return (sentences, sentence_index_to_rollout_ids) for a specific prompt.
+    """Return (sentences, sentence_index_to_rollout_ids) for all responses.
 
     sentence_index_to_rollout_ids maps sentence index (in the returned sentences list)
     to a set of rollout row indices where it appears.
     """
     fields = load_responses_as_rollouts_fields(rollouts_path)
-    prompts: List[str] = fields.get("prompt", [])
     cots: List[str] = fields.get("cot", [])
 
     sentences: List[str] = []
     sentence_index_to_rollout_ids: Dict[int, Set[int]] = {}
 
-    for row_index, (p_text, cot_text) in enumerate(zip(prompts, cots)):
-        if p_text != prompt_text:
-            continue
+    for row_index, cot_text in enumerate(cots):
         cot_sentences = extract_sentences(cot_text)
         for s in cot_sentences:
             sentences.append(s)
@@ -110,29 +106,39 @@ def plot_clusters_vs_threshold(
     plt.close()
 
 
-def choose_threshold_by_silhouette(
+def plot_silhouette_vs_threshold(
     embeddings: np.ndarray,
     thresholds: List[float],
-) -> Tuple[float, float]:
-    """Return (best_threshold, best_silhouette) over thresholds using cosine metric.
-
+    out_path: str,
+) -> None:
+    """Plot silhouette score vs cosine similarity threshold and save to path.
+    
     Only considers thresholds that produce between 2 and n-1 clusters.
     """
     if embeddings.shape[0] < 2:
-        return thresholds[0] if thresholds else 0.0, 0.0
+        return
 
-    best_t = thresholds[0] if thresholds else 0.0
-    best_score = -1.0
+    x_vals: List[float] = []
+    y_vals: List[float] = []
+    
     for t in thresholds:
         labels = cluster_by_cosine_threshold(embeddings, t)
         num_clusters = len(set(labels))
         if num_clusters < 2 or num_clusters >= embeddings.shape[0]:
             continue
         score = silhouette_score(embeddings, labels, metric="cosine")
-        if score > best_score:
-            best_score = score
-            best_t = t
-    return best_t, best_score
+        x_vals.append(t)
+        y_vals.append(score)
+
+    plt.figure(figsize=(6, 4))
+    plt.plot(x_vals, y_vals, marker="o")
+    plt.xlabel("Cosine similarity threshold") 
+    plt.ylabel("Silhouette score")
+    plt.title("Silhouette Score vs Cosine Threshold")
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.savefig(out_path, dpi=150)
+    plt.close()
 
 
 def compute_cluster_centroid(embeddings: np.ndarray, member_indices: List[int]) -> np.ndarray:
@@ -216,15 +222,14 @@ def export_clusters_to_json(
         json.dump({"clusters": clusters_output}, f, ensure_ascii=False, indent=2)
 
 
-def cluster_sentences_for_prompt(
+def cluster_sentences(
     rollouts_path: str,
-    prompt_text: str,
     embed_model: str,
     threshold: float,
     out_json_path: str,
 ) -> None:
     """End-to-end: load sentences, embed, cluster at threshold, export clusters JSON."""
-    sentences, sent_idx_to_rollout_ids = gather_cot_sentences_for_prompt(rollouts_path, prompt_text)
+    sentences, sent_idx_to_rollout_ids = gather_cot_sentences(rollouts_path)
     embedder = load_embedder(embed_model)
     embeddings = embed_sentences(embedder, sentences)
     labels = cluster_by_cosine_threshold(embeddings, threshold)

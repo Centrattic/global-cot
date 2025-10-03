@@ -3,27 +3,25 @@ import os, sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from src.sentence_clustering import (
-    gather_cot_sentences_for_prompt,
+    gather_cot_sentences,
     load_embedder,
     embed_sentences,
     plot_clusters_vs_threshold,
-    choose_threshold_by_silhouette,
+    plot_silhouette_vs_threshold,
     cluster_by_cosine_threshold,
-    cluster_sentences_for_prompt,
+    cluster_sentences,
 )
-from src.utils import load_rollouts_fields, load_responses_as_rollouts_fields, load_prompts_json
+from src.utils import load_responses_as_rollouts_fields
 
 #%% Minimal example scaffold
 print("Setting params...")
 rollouts_path = "/Users/jennakainic/global-cot/responses"
-prompts, _ = load_prompts_json("/Users/jennakainic/global-cot/src/prompts.json")
-prompt_text = prompts[0]
-out_plot = "/Users/jennakainic/global-cot/clusters_vs_threshold.png"
-thresholds = [0.60, 0.625, 0.65, 0.675, 0.70, 0.725, 0.75, 0.775,]
+out_path = "/Users/jennakainic/global-cot/clusters"
+thresholds = [0.7 + 0.05*i for i in range(6)]
 
 #%%
 print("Gathering sentences...")
-sentences, _ = gather_cot_sentences_for_prompt(rollouts_path, prompt_text)
+sentences, _ = gather_cot_sentences(rollouts_path)
 
 #%%
 print("Embedding sentences...")
@@ -31,16 +29,15 @@ E = embed_sentences(load_embedder("sentence-transformers/all-MiniLM-L6-v2"), sen
 
 #%%
 print("Plotting clusters vs threshold...")
-plot_clusters_vs_threshold(E, thresholds, out_plot)
+plot_clusters_vs_threshold(E, thresholds, out_path+"/clusters_vs_threshold.png")
 
 #%%
-print("Choosing threshold by silhouette...")
-best_t, sil = choose_threshold_by_silhouette(E, thresholds)
-print(f"Best threshold: {best_t}, silhouette: {sil}")
+print("Plotting silhouette vs threshold...")
+plot_silhouette_vs_threshold(E, thresholds, out_path+"/silhouette_vs_threshold.png")
 # %%
 #%% Generate clusterings for candidate thresholds - EXAMPLE
 print("Generating both clusterings...")
-thresholds_to_compare = [0.65, 0.72]
+thresholds_to_compare = [0.675, 0.85]
 
 for t in thresholds_to_compare:
     print(f"Threshold: {t}")
@@ -63,5 +60,6 @@ for t in thresholds_to_compare:
             print(f"  {sent}")
 # %%
 # EXAMPLE - create and export clusters to json
-cluster_sentences_for_prompt(rollouts_path, prompt_text, "sentence-transformers/all-MiniLM-L6-v2", 0.72, out_plot)
+threshold = 0.72
+cluster_sentences(rollouts_path, "sentence-transformers/all-MiniLM-L6-v2", threshold, out_path+f"/clusters_{threshold}.json")
 # %%

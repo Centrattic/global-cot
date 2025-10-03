@@ -15,7 +15,6 @@ def write_json(path: str, data: Any) -> None:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
-
 def load_responses_from_folder(responses_folder: str) -> List[Dict[str, Any]]:
     """Load all response files from the responses folder and return as list."""
     responses = []
@@ -65,26 +64,6 @@ def load_clusters_json(clusters_path: str) -> List[Dict[str, Any]]:
         if isinstance(clusters, list):
             return clusters
     return []
-
-
-def load_prompts_json(prompts_path: str) -> Tuple[List[str], List[str]]:
-    prompts: List[str] = []
-    answers: List[str] = []
-    data = load_json(prompts_path)
-    if isinstance(data, dict):
-        parr = data.get("prompts", [])
-        aarr = data.get("answers", [])
-        if isinstance(parr, list):
-            for item in parr:
-                if isinstance(item, str):
-                    text = item.strip()
-                    if text:
-                        prompts.append(text)
-        if isinstance(aarr, list):
-            for item in aarr:
-                if isinstance(item, str):
-                    answers.append(item.strip())
-    return prompts, answers
 
 
 def extract_sentences(text: str) -> List[str]:
