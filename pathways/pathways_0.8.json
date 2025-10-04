@@ -184,433 +184,430 @@
       ]
     }
   ],
-  "transitions": {
-    "edges": [
-      {
-        "from_cluster": 0,
-        "to_cluster": 1,
-        "count": 3,
-        "rollout_ids": [
-          0,
-          3,
-          4
-        ]
-      },
-      {
-        "from_cluster": 1,
-        "to_cluster": 1,
-        "count": 2,
-        "rollout_ids": [
-          0,
-          2
-        ]
-      },
-      {
-        "from_cluster": 1,
-        "to_cluster": 2,
-        "count": 1,
-        "rollout_ids": [
-          0
-        ]
-      },
-      {
-        "from_cluster": 1,
-        "to_cluster": 12,
-        "count": 1,
-        "rollout_ids": [
-          4
-        ]
-      },
-      {
-        "from_cluster": 1,
-        "to_cluster": 19,
-        "count": 1,
-        "rollout_ids": [
-          2
-        ]
-      },
-      {
-        "from_cluster": 1,
-        "to_cluster": 27,
-        "count": 1,
-        "rollout_ids": [
-          3
-        ]
-      },
-      {
-        "from_cluster": 2,
-        "to_cluster": 3,
-        "count": 1,
-        "rollout_ids": [
-          0
-        ]
-      },
-      {
-        "from_cluster": 3,
-        "to_cluster": 4,
-        "count": 1,
-        "rollout_ids": [
-          0
-        ]
-      },
-      {
-        "from_cluster": 3,
-        "to_cluster": 6,
-        "count": 1,
-        "rollout_ids": [
-          0
-        ]
-      },
-      {
-        "from_cluster": 3,
-        "to_cluster": 8,
-        "count": 1,
-        "rollout_ids": [
-          0
-        ]
-      },
-      {
-        "from_cluster": 4,
-        "to_cluster": 5,
-        "count": 1,
-        "rollout_ids": [
-          0
-        ]
-      },
-      {
-        "from_cluster": 5,
-        "to_cluster": 3,
-        "count": 1,
-        "rollout_ids": [
-          0
-        ]
-      },
-      {
-        "from_cluster": 6,
-        "to_cluster": 7,
-        "count": 1,
-        "rollout_ids": [
-          0
-        ]
-      },
-      {
-        "from_cluster": 7,
-        "to_cluster": 3,
-        "count": 1,
-        "rollout_ids": [
-          0
-        ]
-      },
-      {
-        "from_cluster": 7,
-        "to_cluster": 14,
-        "count": 4,
-        "rollout_ids": [
-          1,
-          2,
-          3,
-          4
-        ]
-      },
-      {
-        "from_cluster": 8,
-        "to_cluster": 9,
-        "count": 1,
-        "rollout_ids": [
-          0
-        ]
-      },
-      {
-        "from_cluster": 9,
-        "to_cluster": 10,
-        "count": 1,
-        "rollout_ids": [
-          0
-        ]
-      },
-      {
-        "from_cluster": 11,
-        "to_cluster": 12,
-        "count": 1,
-        "rollout_ids": [
-          1
-        ]
-      },
-      {
-        "from_cluster": 12,
-        "to_cluster": 12,
-        "count": 1,
-        "rollout_ids": [
-          1
-        ]
-      },
-      {
-        "from_cluster": 12,
-        "to_cluster": 13,
-        "count": 2,
-        "rollout_ids": [
-          1,
-          4
-        ]
-      },
-      {
-        "from_cluster": 12,
-        "to_cluster": 20,
-        "count": 2,
-        "rollout_ids": [
-          2,
-          3
-        ]
-      },
-      {
-        "from_cluster": 12,
-        "to_cluster": 21,
-        "count": 1,
-        "rollout_ids": [
-          2
-        ]
-      },
-      {
-        "from_cluster": 13,
-        "to_cluster": 7,
-        "count": 1,
-        "rollout_ids": [
-          3
-        ]
-      },
-      {
-        "from_cluster": 13,
-        "to_cluster": 14,
-        "count": 3,
-        "rollout_ids": [
-          1,
-          3,
-          4
-        ]
-      },
-      {
-        "from_cluster": 13,
-        "to_cluster": 26,
-        "count": 1,
-        "rollout_ids": [
-          2
-        ]
-      },
-      {
-        "from_cluster": 14,
-        "to_cluster": 7,
-        "count": 2,
-        "rollout_ids": [
-          2,
-          3
-        ]
-      },
-      {
-        "from_cluster": 14,
-        "to_cluster": 14,
-        "count": 2,
-        "rollout_ids": [
-          3,
-          4
-        ]
-      },
-      {
-        "from_cluster": 14,
-        "to_cluster": 15,
-        "count": 2,
-        "rollout_ids": [
-          1,
-          3
-        ]
-      },
-      {
-        "from_cluster": 14,
-        "to_cluster": 16,
-        "count": 1,
-        "rollout_ids": [
-          1
-        ]
-      },
-      {
-        "from_cluster": 14,
-        "to_cluster": 25,
-        "count": 1,
-        "rollout_ids": [
-          2
-        ]
-      },
-      {
-        "from_cluster": 14,
-        "to_cluster": 30,
-        "count": 1,
-        "rollout_ids": [
-          3
-        ]
-      },
-      {
-        "from_cluster": 14,
-        "to_cluster": 31,
-        "count": 1,
-        "rollout_ids": [
-          4
-        ]
-      },
-      {
-        "from_cluster": 15,
-        "to_cluster": 7,
-        "count": 2,
-        "rollout_ids": [
-          1,
-          3
-        ]
-      },
-      {
-        "from_cluster": 15,
-        "to_cluster": 14,
-        "count": 1,
-        "rollout_ids": [
-          3
-        ]
-      },
-      {
-        "from_cluster": 16,
-        "to_cluster": 17,
-        "count": 1,
-        "rollout_ids": [
-          1
-        ]
-      },
-      {
-        "from_cluster": 17,
-        "to_cluster": 7,
-        "count": 1,
-        "rollout_ids": [
-          1
-        ]
-      },
-      {
-        "from_cluster": 18,
-        "to_cluster": 1,
-        "count": 1,
-        "rollout_ids": [
-          2
-        ]
-      },
-      {
-        "from_cluster": 19,
-        "to_cluster": 12,
-        "count": 1,
-        "rollout_ids": [
-          2
-        ]
-      },
-      {
-        "from_cluster": 20,
-        "to_cluster": 12,
-        "count": 1,
-        "rollout_ids": [
-          2
-        ]
-      },
-      {
-        "from_cluster": 20,
-        "to_cluster": 28,
-        "count": 1,
-        "rollout_ids": [
-          3
-        ]
-      },
-      {
-        "from_cluster": 21,
-        "to_cluster": 22,
-        "count": 1,
-        "rollout_ids": [
-          2
-        ]
-      },
-      {
-        "from_cluster": 22,
-        "to_cluster": 23,
-        "count": 1,
-        "rollout_ids": [
-          2
-        ]
-      },
-      {
-        "from_cluster": 23,
-        "to_cluster": 24,
-        "count": 1,
-        "rollout_ids": [
-          2
-        ]
-      },
-      {
-        "from_cluster": 24,
-        "to_cluster": 14,
-        "count": 1,
-        "rollout_ids": [
-          2
-        ]
-      },
-      {
-        "from_cluster": 25,
-        "to_cluster": 13,
-        "count": 1,
-        "rollout_ids": [
-          2
-        ]
-      },
-      {
-        "from_cluster": 27,
-        "to_cluster": 12,
-        "count": 1,
-        "rollout_ids": [
-          3
-        ]
-      },
-      {
-        "from_cluster": 28,
-        "to_cluster": 29,
-        "count": 1,
-        "rollout_ids": [
-          3
-        ]
-      },
-      {
-        "from_cluster": 29,
-        "to_cluster": 13,
-        "count": 1,
-        "rollout_ids": [
-          3
-        ]
-      },
-      {
-        "from_cluster": 30,
-        "to_cluster": 13,
-        "count": 1,
-        "rollout_ids": [
-          3
-        ]
-      },
-      {
-        "from_cluster": 31,
-        "to_cluster": 32,
-        "count": 1,
-        "rollout_ids": [
-          4
-        ]
-      },
-      {
-        "from_cluster": 32,
-        "to_cluster": 7,
-        "count": 1,
-        "rollout_ids": [
-          4
-        ]
-      }
-    ],
-    "total_transitions": 65
-  },
+  "edges": [
+    {
+      "from_cluster": 0,
+      "to_cluster": 1,
+      "count": 3,
+      "rollout_ids": [
+        0,
+        3,
+        4
+      ]
+    },
+    {
+      "from_cluster": 1,
+      "to_cluster": 1,
+      "count": 2,
+      "rollout_ids": [
+        0,
+        2
+      ]
+    },
+    {
+      "from_cluster": 1,
+      "to_cluster": 2,
+      "count": 1,
+      "rollout_ids": [
+        0
+      ]
+    },
+    {
+      "from_cluster": 1,
+      "to_cluster": 12,
+      "count": 1,
+      "rollout_ids": [
+        4
+      ]
+    },
+    {
+      "from_cluster": 1,
+      "to_cluster": 19,
+      "count": 1,
+      "rollout_ids": [
+        2
+      ]
+    },
+    {
+      "from_cluster": 1,
+      "to_cluster": 27,
+      "count": 1,
+      "rollout_ids": [
+        3
+      ]
+    },
+    {
+      "from_cluster": 2,
+      "to_cluster": 3,
+      "count": 1,
+      "rollout_ids": [
+        0
+      ]
+    },
+    {
+      "from_cluster": 3,
+      "to_cluster": 4,
+      "count": 1,
+      "rollout_ids": [
+        0
+      ]
+    },
+    {
+      "from_cluster": 3,
+      "to_cluster": 6,
+      "count": 1,
+      "rollout_ids": [
+        0
+      ]
+    },
+    {
+      "from_cluster": 3,
+      "to_cluster": 8,
+      "count": 1,
+      "rollout_ids": [
+        0
+      ]
+    },
+    {
+      "from_cluster": 4,
+      "to_cluster": 5,
+      "count": 1,
+      "rollout_ids": [
+        0
+      ]
+    },
+    {
+      "from_cluster": 5,
+      "to_cluster": 3,
+      "count": 1,
+      "rollout_ids": [
+        0
+      ]
+    },
+    {
+      "from_cluster": 6,
+      "to_cluster": 7,
+      "count": 1,
+      "rollout_ids": [
+        0
+      ]
+    },
+    {
+      "from_cluster": 7,
+      "to_cluster": 3,
+      "count": 1,
+      "rollout_ids": [
+        0
+      ]
+    },
+    {
+      "from_cluster": 7,
+      "to_cluster": 14,
+      "count": 4,
+      "rollout_ids": [
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "from_cluster": 8,
+      "to_cluster": 9,
+      "count": 1,
+      "rollout_ids": [
+        0
+      ]
+    },
+    {
+      "from_cluster": 9,
+      "to_cluster": 10,
+      "count": 1,
+      "rollout_ids": [
+        0
+      ]
+    },
+    {
+      "from_cluster": 11,
+      "to_cluster": 12,
+      "count": 1,
+      "rollout_ids": [
+        1
+      ]
+    },
+    {
+      "from_cluster": 12,
+      "to_cluster": 12,
+      "count": 1,
+      "rollout_ids": [
+        1
+      ]
+    },
+    {
+      "from_cluster": 12,
+      "to_cluster": 13,
+      "count": 2,
+      "rollout_ids": [
+        1,
+        4
+      ]
+    },
+    {
+      "from_cluster": 12,
+      "to_cluster": 20,
+      "count": 2,
+      "rollout_ids": [
+        2,
+        3
+      ]
+    },
+    {
+      "from_cluster": 12,
+      "to_cluster": 21,
+      "count": 1,
+      "rollout_ids": [
+        2
+      ]
+    },
+    {
+      "from_cluster": 13,
+      "to_cluster": 7,
+      "count": 1,
+      "rollout_ids": [
+        3
+      ]
+    },
+    {
+      "from_cluster": 13,
+      "to_cluster": 14,
+      "count": 3,
+      "rollout_ids": [
+        1,
+        3,
+        4
+      ]
+    },
+    {
+      "from_cluster": 13,
+      "to_cluster": 26,
+      "count": 1,
+      "rollout_ids": [
+        2
+      ]
+    },
+    {
+      "from_cluster": 14,
+      "to_cluster": 7,
+      "count": 2,
+      "rollout_ids": [
+        2,
+        3
+      ]
+    },
+    {
+      "from_cluster": 14,
+      "to_cluster": 14,
+      "count": 2,
+      "rollout_ids": [
+        3,
+        4
+      ]
+    },
+    {
+      "from_cluster": 14,
+      "to_cluster": 15,
+      "count": 2,
+      "rollout_ids": [
+        1,
+        3
+      ]
+    },
+    {
+      "from_cluster": 14,
+      "to_cluster": 16,
+      "count": 1,
+      "rollout_ids": [
+        1
+      ]
+    },
+    {
+      "from_cluster": 14,
+      "to_cluster": 25,
+      "count": 1,
+      "rollout_ids": [
+        2
+      ]
+    },
+    {
+      "from_cluster": 14,
+      "to_cluster": 30,
+      "count": 1,
+      "rollout_ids": [
+        3
+      ]
+    },
+    {
+      "from_cluster": 14,
+      "to_cluster": 31,
+      "count": 1,
+      "rollout_ids": [
+        4
+      ]
+    },
+    {
+      "from_cluster": 15,
+      "to_cluster": 7,
+      "count": 2,
+      "rollout_ids": [
+        1,
+        3
+      ]
+    },
+    {
+      "from_cluster": 15,
+      "to_cluster": 14,
+      "count": 1,
+      "rollout_ids": [
+        3
+      ]
+    },
+    {
+      "from_cluster": 16,
+      "to_cluster": 17,
+      "count": 1,
+      "rollout_ids": [
+        1
+      ]
+    },
+    {
+      "from_cluster": 17,
+      "to_cluster": 7,
+      "count": 1,
+      "rollout_ids": [
+        1
+      ]
+    },
+    {
+      "from_cluster": 18,
+      "to_cluster": 1,
+      "count": 1,
+      "rollout_ids": [
+        2
+      ]
+    },
+    {
+      "from_cluster": 19,
+      "to_cluster": 12,
+      "count": 1,
+      "rollout_ids": [
+        2
+      ]
+    },
+    {
+      "from_cluster": 20,
+      "to_cluster": 12,
+      "count": 1,
+      "rollout_ids": [
+        2
+      ]
+    },
+    {
+      "from_cluster": 20,
+      "to_cluster": 28,
+      "count": 1,
+      "rollout_ids": [
+        3
+      ]
+    },
+    {
+      "from_cluster": 21,
+      "to_cluster": 22,
+      "count": 1,
+      "rollout_ids": [
+        2
+      ]
+    },
+    {
+      "from_cluster": 22,
+      "to_cluster": 23,
+      "count": 1,
+      "rollout_ids": [
+        2
+      ]
+    },
+    {
+      "from_cluster": 23,
+      "to_cluster": 24,
+      "count": 1,
+      "rollout_ids": [
+        2
+      ]
+    },
+    {
+      "from_cluster": 24,
+      "to_cluster": 14,
+      "count": 1,
+      "rollout_ids": [
+        2
+      ]
+    },
+    {
+      "from_cluster": 25,
+      "to_cluster": 13,
+      "count": 1,
+      "rollout_ids": [
+        2
+      ]
+    },
+    {
+      "from_cluster": 27,
+      "to_cluster": 12,
+      "count": 1,
+      "rollout_ids": [
+        3
+      ]
+    },
+    {
+      "from_cluster": 28,
+      "to_cluster": 29,
+      "count": 1,
+      "rollout_ids": [
+        3
+      ]
+    },
+    {
+      "from_cluster": 29,
+      "to_cluster": 13,
+      "count": 1,
+      "rollout_ids": [
+        3
+      ]
+    },
+    {
+      "from_cluster": 30,
+      "to_cluster": 13,
+      "count": 1,
+      "rollout_ids": [
+        3
+      ]
+    },
+    {
+      "from_cluster": 31,
+      "to_cluster": 32,
+      "count": 1,
+      "rollout_ids": [
+        4
+      ]
+    },
+    {
+      "from_cluster": 32,
+      "to_cluster": 7,
+      "count": 1,
+      "rollout_ids": [
+        4
+      ]
+    }
+  ],
   "cluster_stats": {
     "0": {
       "total_visits": 3,

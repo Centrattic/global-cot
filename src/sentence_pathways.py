@@ -169,10 +169,7 @@ def build_pathways(
 
     result = {
         "pathways": pathways,
-        "transitions": {
-            "edges": edges_output,
-            "total_transitions": int(total_transitions),
-        },
+        "edges": edges_output,
         "cluster_stats": cluster_stats,
         "metadata": {
             "n_rollouts": int(n_rollouts),

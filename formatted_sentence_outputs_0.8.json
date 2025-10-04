@@ -1,0 +1,1171 @@
+{
+  "nodes": [
+    {
+      "cluster_id": "0",
+      "freq": 3,
+      "representative_sentence": "We need to find number of bits in binary representation of 66666 in hex (base 16).",
+      "sentences": [
+        {
+          "text": "We need to compute 66666 in base-16, then express in binary and count bits.",
+          "count": 1,
+          "rollout_ids": [
+            0
+          ]
+        },
+        {
+          "text": "We need to find number of bits in binary representation of 66666 in hex (base 16).",
+          "count": 1,
+          "rollout_ids": [
+            3
+          ]
+        },
+        {
+          "text": "We need to find the number of bits in binary representation of hex number 66666 (base-16).",
+          "count": 1,
+          "rollout_ids": [
+            4
+          ]
+        }
+      ]
+    },
+    {
+      "cluster_id": "1",
+      "freq": 7,
+      "representative_sentence": "That's digits: 6 6 6 6 6 hex.",
+      "sentences": [
+        {
+          "text": "66666 hex is hex digits: 6 6 6 6 6?",
+          "count": 1,
+          "rollout_ids": [
+            0
+          ]
+        },
+        {
+          "text": "Interpret digits: hex digits 6 6 6 6 6.",
+          "count": 1,
+          "rollout_ids": [
+            4
+          ]
+        },
+        {
+          "text": "That's 5 hex digits, each 4 bits.",
+          "count": 1,
+          "rollout_ids": [
+            0
+          ]
+        },
+        {
+          "text": "That's 5 hex digits.",
+          "count": 1,
+          "rollout_ids": [
+            2
+          ]
+        },
+        {
+          "text": "That's digits: 6 6 6 6 6 hex.",
+          "count": 1,
+          "rollout_ids": [
+            2
+          ]
+        },
+        {
+          "text": "The number is given as hex digits '66666' meaning hex number 0x66666.",
+          "count": 1,
+          "rollout_ids": [
+            3
+          ]
+        },
+        {
+          "text": "Wait \"66666\" as hex string: digits 6,6,6,6,6.",
+          "count": 1,
+          "rollout_ids": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "cluster_id": "2",
+      "freq": 1,
+      "representative_sentence": "So number of binary digits is at most 5*4=20.",
+      "sentences": [
+        {
+          "text": "So number of binary digits is at most 5*4=20.",
+          "count": 1,
+          "rollout_ids": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "cluster_id": "3",
+      "freq": 3,
+      "representative_sentence": "So first digit 6 in hex is binary 110 (since 6 decimal = 0110, 4 bits but first bit 0).",
+      "sentences": [
+        {
+          "text": "But leading hex digit is 6, which in binary is 0110.",
+          "count": 1,
+          "rollout_ids": [
+            0
+          ]
+        },
+        {
+          "text": "So first digit 6 in hex is binary 110 (since 6 decimal = 0110, 4 bits but first bit 0).",
+          "count": 1,
+          "rollout_ids": [
+            0
+          ]
+        },
+        {
+          "text": "Wait representation: 6 hex digit = 0110 binary (4 bits).",
+          "count": 1,
+          "rollout_ids": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "cluster_id": "4",
+      "freq": 1,
+      "representative_sentence": "So leading bit is 0?",
+      "sentences": [
+        {
+          "text": "So leading bit is 0?",
+          "count": 1,
+          "rollout_ids": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "cluster_id": "5",
+      "freq": 1,
+      "representative_sentence": "Leading zero doesn't count.",
+      "sentences": [
+        {
+          "text": "Leading zero doesn't count.",
+          "count": 1,
+          "rollout_ids": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "cluster_id": "6",
+      "freq": 1,
+      "representative_sentence": "So the most significant bit is 1 (third bit).",
+      "sentences": [
+        {
+          "text": "So the most significant bit is 1 (third bit).",
+          "count": 1,
+          "rollout_ids": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "cluster_id": "7",
+      "freq": 8,
+      "representative_sentence": "So number of bits = 19?",
+      "sentences": [
+        {
+          "text": "So answer 19 bits.",
+          "count": 2,
+          "rollout_ids": [
+            1,
+            3
+          ]
+        },
+        {
+          "text": "So binary length 19 bits?",
+          "count": 1,
+          "rollout_ids": [
+            1
+          ]
+        },
+        {
+          "text": "So bits needed = 19.",
+          "count": 1,
+          "rollout_ids": [
+            4
+          ]
+        },
+        {
+          "text": "So need 19 bits?",
+          "count": 1,
+          "rollout_ids": [
+            3
+          ]
+        },
+        {
+          "text": "So number of bits = 19?",
+          "count": 1,
+          "rollout_ids": [
+            2
+          ]
+        },
+        {
+          "text": "So required bits = 19?",
+          "count": 1,
+          "rollout_ids": [
+            3
+          ]
+        },
+        {
+          "text": "So we have 4*5=20 bits, but first bit zero -> 19 bits?",
+          "count": 1,
+          "rollout_ids": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "cluster_id": "8",
+      "freq": 1,
+      "representative_sentence": "But leading zero can be omitted, so we have 3 bits from that digit: 110.",
+      "sentences": [
+        {
+          "text": "But leading zero can be omitted, so we have 3 bits from that digit: 110.",
+          "count": 1,
+          "rollout_ids": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "cluster_id": "9",
+      "freq": 1,
+      "representative_sentence": "Then next four hex digits each 4 bits: total bits = 3 + 4*4 = 3 + 16 = 19 bits.",
+      "sentences": [
+        {
+          "text": "Then next four hex digits each 4 bits: total bits = 3 + 4*4 = 3 + 16 = 19 bits.",
+          "count": 1,
+          "rollout_ids": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "cluster_id": "10",
+      "freq": 1,
+      "representative_sentence": "But need to check if any other leading zeros? none. So answer 19.",
+      "sentences": [
+        {
+          "text": "But need to check if any other leading zeros? none. So answer 19.",
+          "count": 1,
+          "rollout_ids": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "cluster_id": "11",
+      "freq": 1,
+      "representative_sentence": "We need to find number of binary digits of hex number 66666 (hex). Convert to decimal? 0x66666. Compute magnitude.",
+      "sentences": [
+        {
+          "text": "We need to find number of binary digits of hex number 66666 (hex). Convert to decimal? 0x66666. Compute magnitude.",
+          "count": 1,
+          "rollout_ids": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "cluster_id": "12",
+      "freq": 6,
+      "representative_sentence": "So in decimal, value = 6*16^4 +6*16^3+...+6. Compute: 16^4=65536, times6=393216. 16^3=4096*6=24576. 16^2=256*6=1536. 16^1=16*6=96. 16^0=1*6=6. Sum: 393216+24576=417792. +1536=419328. +96=419424. +6=419430. So number=419430 decimal.",
+      "sentences": [
+        {
+          "text": "In decimal it's 6*16^4+6*16^3+6*16^2+6*16+6.",
+          "count": 1,
+          "rollout_ids": [
+            1
+          ]
+        },
+        {
+          "text": "Let's compute: 16^2=256, 16^3=4096, 16^4=65536. So 6*65536=393216. 6*4096=24576. 6*256=1536. 6*16=96. plus 6. Sum: 393216+24576=417792. +1536=419328. +96=419424. +6=419430. Decimal 419430.",
+          "count": 1,
+          "rollout_ids": [
+            1
+          ]
+        },
+        {
+          "text": "Let's compute: value = 6*16^4 +6*16^3 +6*16^2 +6*16 +6.",
+          "count": 1,
+          "rollout_ids": [
+            2
+          ]
+        },
+        {
+          "text": "So in decimal, value = 6*16^4 +6*16^3+...+6. Compute: 16^4=65536, times6=393216. 16^3=4096*6=24576. 16^2=256*6=1536. 16^1=16*6=96. 16^0=1*6=6. Sum: 393216+24576=417792. +1536=419328. +96=419424. +6=419430. So number=419430 decimal.",
+          "count": 1,
+          "rollout_ids": [
+            4
+          ]
+        },
+        {
+          "text": "So value = 6*16^4 + 6*16^3 + 6*16^2 + 6*16^1 + 6*16^0.",
+          "count": 1,
+          "rollout_ids": [
+            3
+          ]
+        },
+        {
+          "text": "So value =6*65536 +6*4096 +6*256 +6*16 +6. Compute each: 6*65536=393,216. 6*4096=24,576. 6*256=1,536. 6*16=96. +6. Sum: 393,216+24,576=417,792. +1,536=419,328. +96=419,424. +6=419,430. So decimal 419,430.",
+          "count": 1,
+          "rollout_ids": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "cluster_id": "13",
+      "freq": 5,
+      "representative_sentence": "Need number of bits: floor(log2(n))+1.",
+      "sentences": [
+        {
+          "text": "Need bits: binary length = floor(log2(n))+1.",
+          "count": 1,
+          "rollout_ids": [
+            3
+          ]
+        },
+        {
+          "text": "Need number of bits: floor(log2(n))+1.",
+          "count": 1,
+          "rollout_ids": [
+            4
+          ]
+        },
+        {
+          "text": "Now binary digits: need floor(log2(419430))+1.",
+          "count": 1,
+          "rollout_ids": [
+            1
+          ]
+        },
+        {
+          "text": "Number of bits = floor(log2(n))+1. log2(419430)\u224818.67. floor=18, +1=19.",
+          "count": 1,
+          "rollout_ids": [
+            3
+          ]
+        },
+        {
+          "text": "So number of bits= floor(log2(n))+1 = 18+1=19.",
+          "count": 1,
+          "rollout_ids": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "cluster_id": "14",
+      "freq": 13,
+      "representative_sentence": "Let's double-check: 2^18=262144, 2^19=524288.",
+      "sentences": [
+        {
+          "text": "419430 is less than 524288, so 19 bits. Thus answer: 19.",
+          "count": 1,
+          "rollout_ids": [
+            4
+          ]
+        },
+        {
+          "text": "Actually if number < 2^19, then need 19 bits. Since 2^18=262144, 2^19=524288.",
+          "count": 1,
+          "rollout_ids": [
+            1
+          ]
+        },
+        {
+          "text": "But we must check if 419430 is exactly 2^19? no. So 19 bits.",
+          "count": 1,
+          "rollout_ids": [
+            4
+          ]
+        },
+        {
+          "text": "Compute log2 of 419430. 2^19=524288. 2^18=262144.",
+          "count": 1,
+          "rollout_ids": [
+            4
+          ]
+        },
+        {
+          "text": "Compute log2: 2^19=524288, 2^18=262144.",
+          "count": 1,
+          "rollout_ids": [
+            3
+          ]
+        },
+        {
+          "text": "Compute log2: 2^19=524288; 2^18=262144. So between.",
+          "count": 1,
+          "rollout_ids": [
+            1
+          ]
+        },
+        {
+          "text": "Let's check: 2^18=262144, 2^19=524288.",
+          "count": 1,
+          "rollout_ids": [
+            3
+          ]
+        },
+        {
+          "text": "Let's double-check: 2^18=262144, 2^19=524288.",
+          "count": 1,
+          "rollout_ids": [
+            4
+          ]
+        },
+        {
+          "text": "Now find highest power of 2 less than or equal: 2^18=262,144. 2^19=524,288 > n.",
+          "count": 1,
+          "rollout_ids": [
+            2
+          ]
+        },
+        {
+          "text": "Since n<524288, highest power < n is 2^18?",
+          "count": 1,
+          "rollout_ids": [
+            3
+          ]
+        },
+        {
+          "text": "So highest power of two less than n is 2^18=262144.",
+          "count": 1,
+          "rollout_ids": [
+            3
+          ]
+        },
+        {
+          "text": "Wait count: For number <2^19, need 19 bits.",
+          "count": 1,
+          "rollout_ids": [
+            3
+          ]
+        },
+        {
+          "text": "Wait if highest power <=n is 2^18, then bits needed = 19?",
+          "count": 1,
+          "rollout_ids": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "cluster_id": "15",
+      "freq": 3,
+      "representative_sentence": "419430 < 524288 but >262144.",
+      "sentences": [
+        {
+          "text": "419430 < 524288 but >262144.",
+          "count": 1,
+          "rollout_ids": [
+            1
+          ]
+        },
+        {
+          "text": "Actually 262144 < 419430 < 524288.",
+          "count": 1,
+          "rollout_ids": [
+            3
+          ]
+        },
+        {
+          "text": "So 419430 between 262144 and 524288.",
+          "count": 1,
+          "rollout_ids": [
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "cluster_id": "16",
+      "freq": 1,
+      "representative_sentence": "So numbers from 262144 to 524287 require 19 bits.",
+      "sentences": [
+        {
+          "text": "So numbers from 262144 to 524287 require 19 bits.",
+          "count": 1,
+          "rollout_ids": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "cluster_id": "17",
+      "freq": 1,
+      "representative_sentence": "Our number 419430 in that range.",
+      "sentences": [
+        {
+          "text": "Our number 419430 in that range.",
+          "count": 1,
+          "rollout_ids": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "cluster_id": "18",
+      "freq": 1,
+      "representative_sentence": "We need to find decimal value of hex 66666 (hex).",
+      "sentences": [
+        {
+          "text": "We need to find decimal value of hex 66666 (hex).",
+          "count": 1,
+          "rollout_ids": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "cluster_id": "19",
+      "freq": 1,
+      "representative_sentence": "Convert to decimal then binary length.",
+      "sentences": [
+        {
+          "text": "Convert to decimal then binary length.",
+          "count": 1,
+          "rollout_ids": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "cluster_id": "20",
+      "freq": 2,
+      "representative_sentence": "Compute powers: 16^1=16, 16^2=256, 16^3=4096, 16^4=65536.",
+      "sentences": [
+        {
+          "text": "Compute powers: 16^1=16, 16^2=256, 16^3=4096, 16^4=65536.",
+          "count": 1,
+          "rollout_ids": [
+            2
+          ]
+        },
+        {
+          "text": "Compute: 16^0=1, 16^1=16, 16^2=256, 16^3=4096, 16^4=65536.",
+          "count": 1,
+          "rollout_ids": [
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "cluster_id": "21",
+      "freq": 1,
+      "representative_sentence": "Now find binary length: need floor(log2(n))+1. Compute log2(419,430). 2^19=524,288. 2^18=262,144. So it's between. 419,430>262,144.",
+      "sentences": [
+        {
+          "text": "Now find binary length: need floor(log2(n))+1. Compute log2(419,430). 2^19=524,288. 2^18=262,144. So it's between. 419,430>262,144.",
+          "count": 1,
+          "rollout_ids": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "cluster_id": "22",
+      "freq": 1,
+      "representative_sentence": "Let's find binary representation maybe 419,430 = 256*?",
+      "sentences": [
+        {
+          "text": "Let's find binary representation maybe 419,430 = 256*?",
+          "count": 1,
+          "rollout_ids": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "cluster_id": "23",
+      "freq": 1,
+      "representative_sentence": "Wait 419,430 = 0x66666 hex?",
+      "sentences": [
+        {
+          "text": "Wait 419,430 = 0x66666 hex?",
+          "count": 1,
+          "rollout_ids": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "cluster_id": "24",
+      "freq": 1,
+      "representative_sentence": "Actually 0x66666 decimal 419,430.",
+      "sentences": [
+        {
+          "text": "Actually 0x66666 decimal 419,430.",
+          "count": 1,
+          "rollout_ids": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "cluster_id": "25",
+      "freq": 1,
+      "representative_sentence": "Because need bits up to position 18.",
+      "sentences": [
+        {
+          "text": "Because need bits up to position 18.",
+          "count": 1,
+          "rollout_ids": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "cluster_id": "26",
+      "freq": 1,
+      "representative_sentence": "Check if n is exactly power of 2? no. Thus answer 19.",
+      "sentences": [
+        {
+          "text": "Check if n is exactly power of 2? no. Thus answer 19.",
+          "count": 1,
+          "rollout_ids": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "cluster_id": "27",
+      "freq": 1,
+      "representative_sentence": "Convert to decimal: Each hex digit 6 = decimal 6.",
+      "sentences": [
+        {
+          "text": "Convert to decimal: Each hex digit 6 = decimal 6.",
+          "count": 1,
+          "rollout_ids": [
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "cluster_id": "28",
+      "freq": 1,
+      "representative_sentence": "Multiply 6: 6*65536=393216; 6*4096=24576; 6*256=1536; 6*16=96; 6*1=6.",
+      "sentences": [
+        {
+          "text": "Multiply 6: 6*65536=393216; 6*4096=24576; 6*256=1536; 6*16=96; 6*1=6.",
+          "count": 1,
+          "rollout_ids": [
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "cluster_id": "29",
+      "freq": 1,
+      "representative_sentence": "Sum: 393216+24576=417792; +1536=419328; +96=419424; +6=419430. So decimal 419430.",
+      "sentences": [
+        {
+          "text": "Sum: 393216+24576=417792; +1536=419328; +96=419424; +6=419430. So decimal 419430.",
+          "count": 1,
+          "rollout_ids": [
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "cluster_id": "30",
+      "freq": 1,
+      "representative_sentence": "Because bits indexed 0..18.",
+      "sentences": [
+        {
+          "text": "Because bits indexed 0..18.",
+          "count": 1,
+          "rollout_ids": [
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "cluster_id": "31",
+      "freq": 1,
+      "representative_sentence": "So between 18 and 19. 419430>262144, <524288.",
+      "sentences": [
+        {
+          "text": "So between 18 and 19. 419430>262144, <524288.",
+          "count": 1,
+          "rollout_ids": [
+            4
+          ]
+        }
+      ]
+    },
+    {
+      "cluster_id": "32",
+      "freq": 1,
+      "representative_sentence": "So log2 ~ 18.7.",
+      "sentences": [
+        {
+          "text": "So log2 ~ 18.7.",
+          "count": 1,
+          "rollout_ids": [
+            4
+          ]
+        }
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "from_cluster": 0,
+      "to_cluster": 1,
+      "freq": 1
+    },
+    {
+      "from_cluster": 1,
+      "to_cluster": 12,
+      "freq": 1
+    },
+    {
+      "from_cluster": 12,
+      "to_cluster": 13,
+      "freq": 1
+    },
+    {
+      "from_cluster": 13,
+      "to_cluster": 14,
+      "freq": 1
+    },
+    {
+      "from_cluster": 14,
+      "to_cluster": 31,
+      "freq": 1
+    },
+    {
+      "from_cluster": 31,
+      "to_cluster": 32,
+      "freq": 1
+    },
+    {
+      "from_cluster": 32,
+      "to_cluster": 7,
+      "freq": 1
+    },
+    {
+      "from_cluster": 7,
+      "to_cluster": 14,
+      "freq": 1
+    },
+    {
+      "from_cluster": 14,
+      "to_cluster": 14,
+      "freq": 1
+    },
+    {
+      "from_cluster": 14,
+      "to_cluster": 14,
+      "freq": 1
+    }
+  ],
+  "rollouts": [
+    {
+      "rollout_id": 0,
+      "edges": [
+        {
+          "from_cluster": 0,
+          "to_cluster": 1,
+          "freq": 1
+        },
+        {
+          "from_cluster": 1,
+          "to_cluster": 1,
+          "freq": 1
+        },
+        {
+          "from_cluster": 1,
+          "to_cluster": 1,
+          "freq": 1
+        },
+        {
+          "from_cluster": 1,
+          "to_cluster": 2,
+          "freq": 1
+        },
+        {
+          "from_cluster": 2,
+          "to_cluster": 3,
+          "freq": 1
+        },
+        {
+          "from_cluster": 3,
+          "to_cluster": 4,
+          "freq": 1
+        },
+        {
+          "from_cluster": 4,
+          "to_cluster": 5,
+          "freq": 1
+        },
+        {
+          "from_cluster": 5,
+          "to_cluster": 3,
+          "freq": 1
+        },
+        {
+          "from_cluster": 3,
+          "to_cluster": 6,
+          "freq": 1
+        },
+        {
+          "from_cluster": 6,
+          "to_cluster": 7,
+          "freq": 1
+        },
+        {
+          "from_cluster": 7,
+          "to_cluster": 3,
+          "freq": 1
+        },
+        {
+          "from_cluster": 3,
+          "to_cluster": 8,
+          "freq": 1
+        },
+        {
+          "from_cluster": 8,
+          "to_cluster": 9,
+          "freq": 1
+        },
+        {
+          "from_cluster": 9,
+          "to_cluster": 10,
+          "freq": 1
+        }
+      ]
+    },
+    {
+      "rollout_id": 1,
+      "edges": [
+        {
+          "from_cluster": 11,
+          "to_cluster": 12,
+          "freq": 1
+        },
+        {
+          "from_cluster": 12,
+          "to_cluster": 12,
+          "freq": 1
+        },
+        {
+          "from_cluster": 12,
+          "to_cluster": 13,
+          "freq": 1
+        },
+        {
+          "from_cluster": 13,
+          "to_cluster": 14,
+          "freq": 1
+        },
+        {
+          "from_cluster": 14,
+          "to_cluster": 15,
+          "freq": 1
+        },
+        {
+          "from_cluster": 15,
+          "to_cluster": 7,
+          "freq": 1
+        },
+        {
+          "from_cluster": 7,
+          "to_cluster": 14,
+          "freq": 1
+        },
+        {
+          "from_cluster": 14,
+          "to_cluster": 16,
+          "freq": 1
+        },
+        {
+          "from_cluster": 16,
+          "to_cluster": 17,
+          "freq": 1
+        },
+        {
+          "from_cluster": 17,
+          "to_cluster": 7,
+          "freq": 1
+        }
+      ]
+    },
+    {
+      "rollout_id": 2,
+      "edges": [
+        {
+          "from_cluster": 18,
+          "to_cluster": 1,
+          "freq": 1
+        },
+        {
+          "from_cluster": 1,
+          "to_cluster": 1,
+          "freq": 1
+        },
+        {
+          "from_cluster": 1,
+          "to_cluster": 19,
+          "freq": 1
+        },
+        {
+          "from_cluster": 19,
+          "to_cluster": 12,
+          "freq": 1
+        },
+        {
+          "from_cluster": 12,
+          "to_cluster": 20,
+          "freq": 1
+        },
+        {
+          "from_cluster": 20,
+          "to_cluster": 12,
+          "freq": 1
+        },
+        {
+          "from_cluster": 12,
+          "to_cluster": 21,
+          "freq": 1
+        },
+        {
+          "from_cluster": 21,
+          "to_cluster": 22,
+          "freq": 1
+        },
+        {
+          "from_cluster": 22,
+          "to_cluster": 23,
+          "freq": 1
+        },
+        {
+          "from_cluster": 23,
+          "to_cluster": 24,
+          "freq": 1
+        },
+        {
+          "from_cluster": 24,
+          "to_cluster": 14,
+          "freq": 1
+        },
+        {
+          "from_cluster": 14,
+          "to_cluster": 7,
+          "freq": 1
+        },
+        {
+          "from_cluster": 7,
+          "to_cluster": 14,
+          "freq": 1
+        },
+        {
+          "from_cluster": 14,
+          "to_cluster": 25,
+          "freq": 1
+        },
+        {
+          "from_cluster": 25,
+          "to_cluster": 13,
+          "freq": 1
+        },
+        {
+          "from_cluster": 13,
+          "to_cluster": 26,
+          "freq": 1
+        }
+      ]
+    },
+    {
+      "rollout_id": 3,
+      "edges": [
+        {
+          "from_cluster": 0,
+          "to_cluster": 1,
+          "freq": 1
+        },
+        {
+          "from_cluster": 1,
+          "to_cluster": 27,
+          "freq": 1
+        },
+        {
+          "from_cluster": 27,
+          "to_cluster": 12,
+          "freq": 1
+        },
+        {
+          "from_cluster": 12,
+          "to_cluster": 20,
+          "freq": 1
+        },
+        {
+          "from_cluster": 20,
+          "to_cluster": 28,
+          "freq": 1
+        },
+        {
+          "from_cluster": 28,
+          "to_cluster": 29,
+          "freq": 1
+        },
+        {
+          "from_cluster": 29,
+          "to_cluster": 13,
+          "freq": 1
+        },
+        {
+          "from_cluster": 13,
+          "to_cluster": 14,
+          "freq": 1
+        },
+        {
+          "from_cluster": 14,
+          "to_cluster": 15,
+          "freq": 1
+        },
+        {
+          "from_cluster": 15,
+          "to_cluster": 7,
+          "freq": 1
+        },
+        {
+          "from_cluster": 7,
+          "to_cluster": 14,
+          "freq": 1
+        },
+        {
+          "from_cluster": 14,
+          "to_cluster": 14,
+          "freq": 1
+        },
+        {
+          "from_cluster": 14,
+          "to_cluster": 15,
+          "freq": 1
+        },
+        {
+          "from_cluster": 15,
+          "to_cluster": 14,
+          "freq": 1
+        },
+        {
+          "from_cluster": 14,
+          "to_cluster": 7,
+          "freq": 1
+        },
+        {
+          "from_cluster": 7,
+          "to_cluster": 14,
+          "freq": 1
+        },
+        {
+          "from_cluster": 14,
+          "to_cluster": 30,
+          "freq": 1
+        },
+        {
+          "from_cluster": 30,
+          "to_cluster": 13,
+          "freq": 1
+        },
+        {
+          "from_cluster": 13,
+          "to_cluster": 7,
+          "freq": 1
+        }
+      ]
+    },
+    {
+      "rollout_id": 4,
+      "edges": [
+        {
+          "from_cluster": 0,
+          "to_cluster": 1,
+          "freq": 1
+        },
+        {
+          "from_cluster": 1,
+          "to_cluster": 12,
+          "freq": 1
+        },
+        {
+          "from_cluster": 12,
+          "to_cluster": 13,
+          "freq": 1
+        },
+        {
+          "from_cluster": 13,
+          "to_cluster": 14,
+          "freq": 1
+        },
+        {
+          "from_cluster": 14,
+          "to_cluster": 31,
+          "freq": 1
+        },
+        {
+          "from_cluster": 31,
+          "to_cluster": 32,
+          "freq": 1
+        },
+        {
+          "from_cluster": 32,
+          "to_cluster": 7,
+          "freq": 1
+        },
+        {
+          "from_cluster": 7,
+          "to_cluster": 14,
+          "freq": 1
+        },
+        {
+          "from_cluster": 14,
+          "to_cluster": 14,
+          "freq": 1
+        },
+        {
+          "from_cluster": 14,
+          "to_cluster": 14,
+          "freq": 1
+        }
+      ]
+    }
+  ]
+}
