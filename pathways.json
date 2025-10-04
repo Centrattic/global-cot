@@ -1,0 +1,938 @@
+{
+  "pathways": [
+    {
+      "rollout_id": 0,
+      "cluster_sequence": [
+        0,
+        1,
+        1,
+        1,
+        2,
+        3,
+        4,
+        5,
+        3,
+        6,
+        7,
+        3,
+        8,
+        9,
+        10
+      ],
+      "sentence_texts": [
+        "We need to compute 66666 in base-16, then express in binary and count bits.",
+        "66666 hex is hex digits: 6 6 6 6 6?",
+        "Wait \"66666\" as hex string: digits 6,6,6,6,6.",
+        "That's 5 hex digits, each 4 bits.",
+        "So number of binary digits is at most 5*4=20.",
+        "But leading hex digit is 6, which in binary is 0110.",
+        "So leading bit is 0?",
+        "Leading zero doesn't count.",
+        "So first digit 6 in hex is binary 110 (since 6 decimal = 0110, 4 bits but first bit 0).",
+        "So the most significant bit is 1 (third bit).",
+        "So we have 4*5=20 bits, but first bit zero -> 19 bits?",
+        "Wait representation: 6 hex digit = 0110 binary (4 bits).",
+        "But leading zero can be omitted, so we have 3 bits from that digit: 110.",
+        "Then next four hex digits each 4 bits: total bits = 3 + 4*4 = 3 + 16 = 19 bits.",
+        "But need to check if any other leading zeros? none. So answer 19."
+      ]
+    },
+    {
+      "rollout_id": 1,
+      "cluster_sequence": [
+        11,
+        12,
+        12,
+        13,
+        14,
+        15,
+        7,
+        14,
+        16,
+        17,
+        7
+      ],
+      "sentence_texts": [
+        "We need to find number of binary digits of hex number 66666 (hex). Convert to decimal? 0x66666. Compute magnitude.",
+        "In decimal it's 6*16^4+6*16^3+6*16^2+6*16+6.",
+        "Let's compute: 16^2=256, 16^3=4096, 16^4=65536. So 6*65536=393216. 6*4096=24576. 6*256=1536. 6*16=96. plus 6. Sum: 393216+24576=417792. +1536=419328. +96=419424. +6=419430. Decimal 419430.",
+        "Now binary digits: need floor(log2(419430))+1.",
+        "Compute log2: 2^19=524288; 2^18=262144. So between.",
+        "419430 < 524288 but >262144.",
+        "So binary length 19 bits?",
+        "Actually if number < 2^19, then need 19 bits. Since 2^18=262144, 2^19=524288.",
+        "So numbers from 262144 to 524287 require 19 bits.",
+        "Our number 419430 in that range.",
+        "So answer 19 bits."
+      ]
+    },
+    {
+      "rollout_id": 2,
+      "cluster_sequence": [
+        18,
+        1,
+        1,
+        19,
+        12,
+        20,
+        12,
+        21,
+        22,
+        23,
+        24,
+        14,
+        7,
+        14,
+        25,
+        13,
+        26
+      ],
+      "sentence_texts": [
+        "We need to find decimal value of hex 66666 (hex).",
+        "That's digits: 6 6 6 6 6 hex.",
+        "That's 5 hex digits.",
+        "Convert to decimal then binary length.",
+        "Let's compute: value = 6*16^4 +6*16^3 +6*16^2 +6*16 +6.",
+        "Compute powers: 16^1=16, 16^2=256, 16^3=4096, 16^4=65536.",
+        "So value =6*65536 +6*4096 +6*256 +6*16 +6. Compute each: 6*65536=393,216. 6*4096=24,576. 6*256=1,536. 6*16=96. +6. Sum: 393,216+24,576=417,792. +1,536=419,328. +96=419,424. +6=419,430. So decimal 419,430.",
+        "Now find binary length: need floor(log2(n))+1. Compute log2(419,430). 2^19=524,288. 2^18=262,144. So it's between. 419,430>262,144.",
+        "Let's find binary representation maybe 419,430 = 256*?",
+        "Wait 419,430 = 0x66666 hex?",
+        "Actually 0x66666 decimal 419,430.",
+        "Now find highest power of 2 less than or equal: 2^18=262,144. 2^19=524,288 > n.",
+        "So number of bits = 19?",
+        "Wait if highest power <=n is 2^18, then bits needed = 19?",
+        "Because need bits up to position 18.",
+        "So number of bits= floor(log2(n))+1 = 18+1=19.",
+        "Check if n is exactly power of 2? no. Thus answer 19."
+      ]
+    },
+    {
+      "rollout_id": 3,
+      "cluster_sequence": [
+        0,
+        1,
+        27,
+        12,
+        20,
+        28,
+        29,
+        13,
+        14,
+        15,
+        7,
+        14,
+        14,
+        15,
+        14,
+        7,
+        14,
+        30,
+        13,
+        7
+      ],
+      "sentence_texts": [
+        "We need to find number of bits in binary representation of 66666 in hex (base 16).",
+        "The number is given as hex digits '66666' meaning hex number 0x66666.",
+        "Convert to decimal: Each hex digit 6 = decimal 6.",
+        "So value = 6*16^4 + 6*16^3 + 6*16^2 + 6*16^1 + 6*16^0.",
+        "Compute: 16^0=1, 16^1=16, 16^2=256, 16^3=4096, 16^4=65536.",
+        "Multiply 6: 6*65536=393216; 6*4096=24576; 6*256=1536; 6*16=96; 6*1=6.",
+        "Sum: 393216+24576=417792; +1536=419328; +96=419424; +6=419430. So decimal 419430.",
+        "Need bits: binary length = floor(log2(n))+1.",
+        "Compute log2: 2^19=524288, 2^18=262144.",
+        "So 419430 between 262144 and 524288.",
+        "So need 19 bits?",
+        "Let's check: 2^18=262144, 2^19=524288.",
+        "Since n<524288, highest power < n is 2^18?",
+        "Actually 262144 < 419430 < 524288.",
+        "So highest power of two less than n is 2^18=262144.",
+        "So required bits = 19?",
+        "Wait count: For number <2^19, need 19 bits.",
+        "Because bits indexed 0..18.",
+        "Number of bits = floor(log2(n))+1. log2(419430)≈18.67. floor=18, +1=19.",
+        "So answer 19 bits."
+      ]
+    },
+    {
+      "rollout_id": 4,
+      "cluster_sequence": [
+        0,
+        1,
+        12,
+        13,
+        14,
+        31,
+        32,
+        7,
+        14,
+        14,
+        14
+      ],
+      "sentence_texts": [
+        "We need to find the number of bits in binary representation of hex number 66666 (base-16).",
+        "Interpret digits: hex digits 6 6 6 6 6.",
+        "So in decimal, value = 6*16^4 +6*16^3+...+6. Compute: 16^4=65536, times6=393216. 16^3=4096*6=24576. 16^2=256*6=1536. 16^1=16*6=96. 16^0=1*6=6. Sum: 393216+24576=417792. +1536=419328. +96=419424. +6=419430. So number=419430 decimal.",
+        "Need number of bits: floor(log2(n))+1.",
+        "Compute log2 of 419430. 2^19=524288. 2^18=262144.",
+        "So between 18 and 19. 419430>262144, <524288.",
+        "So log2 ~ 18.7.",
+        "So bits needed = 19.",
+        "But we must check if 419430 is exactly 2^19? no. So 19 bits.",
+        "Let's double-check: 2^18=262144, 2^19=524288.",
+        "419430 is less than 524288, so 19 bits. Thus answer: 19."
+      ]
+    }
+  ],
+  "transitions": {
+    "edges": [
+      {
+        "from_cluster": 0,
+        "to_cluster": 1,
+        "count": 3,
+        "rollout_ids": [
+          0,
+          3,
+          4
+        ]
+      },
+      {
+        "from_cluster": 1,
+        "to_cluster": 1,
+        "count": 2,
+        "rollout_ids": [
+          0,
+          2
+        ]
+      },
+      {
+        "from_cluster": 1,
+        "to_cluster": 2,
+        "count": 1,
+        "rollout_ids": [
+          0
+        ]
+      },
+      {
+        "from_cluster": 1,
+        "to_cluster": 12,
+        "count": 1,
+        "rollout_ids": [
+          4
+        ]
+      },
+      {
+        "from_cluster": 1,
+        "to_cluster": 19,
+        "count": 1,
+        "rollout_ids": [
+          2
+        ]
+      },
+      {
+        "from_cluster": 1,
+        "to_cluster": 27,
+        "count": 1,
+        "rollout_ids": [
+          3
+        ]
+      },
+      {
+        "from_cluster": 2,
+        "to_cluster": 3,
+        "count": 1,
+        "rollout_ids": [
+          0
+        ]
+      },
+      {
+        "from_cluster": 3,
+        "to_cluster": 4,
+        "count": 1,
+        "rollout_ids": [
+          0
+        ]
+      },
+      {
+        "from_cluster": 3,
+        "to_cluster": 6,
+        "count": 1,
+        "rollout_ids": [
+          0
+        ]
+      },
+      {
+        "from_cluster": 3,
+        "to_cluster": 8,
+        "count": 1,
+        "rollout_ids": [
+          0
+        ]
+      },
+      {
+        "from_cluster": 4,
+        "to_cluster": 5,
+        "count": 1,
+        "rollout_ids": [
+          0
+        ]
+      },
+      {
+        "from_cluster": 5,
+        "to_cluster": 3,
+        "count": 1,
+        "rollout_ids": [
+          0
+        ]
+      },
+      {
+        "from_cluster": 6,
+        "to_cluster": 7,
+        "count": 1,
+        "rollout_ids": [
+          0
+        ]
+      },
+      {
+        "from_cluster": 7,
+        "to_cluster": 3,
+        "count": 1,
+        "rollout_ids": [
+          0
+        ]
+      },
+      {
+        "from_cluster": 7,
+        "to_cluster": 14,
+        "count": 4,
+        "rollout_ids": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      {
+        "from_cluster": 8,
+        "to_cluster": 9,
+        "count": 1,
+        "rollout_ids": [
+          0
+        ]
+      },
+      {
+        "from_cluster": 9,
+        "to_cluster": 10,
+        "count": 1,
+        "rollout_ids": [
+          0
+        ]
+      },
+      {
+        "from_cluster": 11,
+        "to_cluster": 12,
+        "count": 1,
+        "rollout_ids": [
+          1
+        ]
+      },
+      {
+        "from_cluster": 12,
+        "to_cluster": 12,
+        "count": 1,
+        "rollout_ids": [
+          1
+        ]
+      },
+      {
+        "from_cluster": 12,
+        "to_cluster": 13,
+        "count": 2,
+        "rollout_ids": [
+          1,
+          4
+        ]
+      },
+      {
+        "from_cluster": 12,
+        "to_cluster": 20,
+        "count": 2,
+        "rollout_ids": [
+          2,
+          3
+        ]
+      },
+      {
+        "from_cluster": 12,
+        "to_cluster": 21,
+        "count": 1,
+        "rollout_ids": [
+          2
+        ]
+      },
+      {
+        "from_cluster": 13,
+        "to_cluster": 7,
+        "count": 1,
+        "rollout_ids": [
+          3
+        ]
+      },
+      {
+        "from_cluster": 13,
+        "to_cluster": 14,
+        "count": 3,
+        "rollout_ids": [
+          1,
+          3,
+          4
+        ]
+      },
+      {
+        "from_cluster": 13,
+        "to_cluster": 26,
+        "count": 1,
+        "rollout_ids": [
+          2
+        ]
+      },
+      {
+        "from_cluster": 14,
+        "to_cluster": 7,
+        "count": 2,
+        "rollout_ids": [
+          2,
+          3
+        ]
+      },
+      {
+        "from_cluster": 14,
+        "to_cluster": 14,
+        "count": 2,
+        "rollout_ids": [
+          3,
+          4
+        ]
+      },
+      {
+        "from_cluster": 14,
+        "to_cluster": 15,
+        "count": 2,
+        "rollout_ids": [
+          1,
+          3
+        ]
+      },
+      {
+        "from_cluster": 14,
+        "to_cluster": 16,
+        "count": 1,
+        "rollout_ids": [
+          1
+        ]
+      },
+      {
+        "from_cluster": 14,
+        "to_cluster": 25,
+        "count": 1,
+        "rollout_ids": [
+          2
+        ]
+      },
+      {
+        "from_cluster": 14,
+        "to_cluster": 30,
+        "count": 1,
+        "rollout_ids": [
+          3
+        ]
+      },
+      {
+        "from_cluster": 14,
+        "to_cluster": 31,
+        "count": 1,
+        "rollout_ids": [
+          4
+        ]
+      },
+      {
+        "from_cluster": 15,
+        "to_cluster": 7,
+        "count": 2,
+        "rollout_ids": [
+          1,
+          3
+        ]
+      },
+      {
+        "from_cluster": 15,
+        "to_cluster": 14,
+        "count": 1,
+        "rollout_ids": [
+          3
+        ]
+      },
+      {
+        "from_cluster": 16,
+        "to_cluster": 17,
+        "count": 1,
+        "rollout_ids": [
+          1
+        ]
+      },
+      {
+        "from_cluster": 17,
+        "to_cluster": 7,
+        "count": 1,
+        "rollout_ids": [
+          1
+        ]
+      },
+      {
+        "from_cluster": 18,
+        "to_cluster": 1,
+        "count": 1,
+        "rollout_ids": [
+          2
+        ]
+      },
+      {
+        "from_cluster": 19,
+        "to_cluster": 12,
+        "count": 1,
+        "rollout_ids": [
+          2
+        ]
+      },
+      {
+        "from_cluster": 20,
+        "to_cluster": 12,
+        "count": 1,
+        "rollout_ids": [
+          2
+        ]
+      },
+      {
+        "from_cluster": 20,
+        "to_cluster": 28,
+        "count": 1,
+        "rollout_ids": [
+          3
+        ]
+      },
+      {
+        "from_cluster": 21,
+        "to_cluster": 22,
+        "count": 1,
+        "rollout_ids": [
+          2
+        ]
+      },
+      {
+        "from_cluster": 22,
+        "to_cluster": 23,
+        "count": 1,
+        "rollout_ids": [
+          2
+        ]
+      },
+      {
+        "from_cluster": 23,
+        "to_cluster": 24,
+        "count": 1,
+        "rollout_ids": [
+          2
+        ]
+      },
+      {
+        "from_cluster": 24,
+        "to_cluster": 14,
+        "count": 1,
+        "rollout_ids": [
+          2
+        ]
+      },
+      {
+        "from_cluster": 25,
+        "to_cluster": 13,
+        "count": 1,
+        "rollout_ids": [
+          2
+        ]
+      },
+      {
+        "from_cluster": 27,
+        "to_cluster": 12,
+        "count": 1,
+        "rollout_ids": [
+          3
+        ]
+      },
+      {
+        "from_cluster": 28,
+        "to_cluster": 29,
+        "count": 1,
+        "rollout_ids": [
+          3
+        ]
+      },
+      {
+        "from_cluster": 29,
+        "to_cluster": 13,
+        "count": 1,
+        "rollout_ids": [
+          3
+        ]
+      },
+      {
+        "from_cluster": 30,
+        "to_cluster": 13,
+        "count": 1,
+        "rollout_ids": [
+          3
+        ]
+      },
+      {
+        "from_cluster": 31,
+        "to_cluster": 32,
+        "count": 1,
+        "rollout_ids": [
+          4
+        ]
+      },
+      {
+        "from_cluster": 32,
+        "to_cluster": 7,
+        "count": 1,
+        "rollout_ids": [
+          4
+        ]
+      }
+    ],
+    "total_transitions": 65
+  },
+  "cluster_stats": {
+    "0": {
+      "total_visits": 3,
+      "as_start": 3,
+      "as_end": 0,
+      "mean_position": 0.0,
+      "rollouts_containing": [
+        0,
+        3,
+        4
+      ]
+    },
+    "1": {
+      "total_visits": 7,
+      "as_start": 0,
+      "as_end": 0,
+      "mean_position": 0.10981471535982813,
+      "rollouts_containing": [
+        0,
+        2,
+        3,
+        4
+      ]
+    },
+    "2": {
+      "total_visits": 1,
+      "as_start": 0,
+      "as_end": 0,
+      "mean_position": 0.2857142857142857,
+      "rollouts_containing": [
+        0
+      ]
+    },
+    "3": {
+      "total_visits": 3,
+      "as_start": 0,
+      "as_end": 0,
+      "mean_position": 0.5714285714285715,
+      "rollouts_containing": [
+        0
+      ]
+    },
+    "4": {
+      "total_visits": 1,
+      "as_start": 0,
+      "as_end": 0,
+      "mean_position": 0.42857142857142855,
+      "rollouts_containing": [
+        0
+      ]
+    },
+    "5": {
+      "total_visits": 1,
+      "as_start": 0,
+      "as_end": 0,
+      "mean_position": 0.5,
+      "rollouts_containing": [
+        0
+      ]
+    },
+    "6": {
+      "total_visits": 1,
+      "as_start": 0,
+      "as_end": 0,
+      "mean_position": 0.6428571428571429,
+      "rollouts_containing": [
+        0
+      ]
+    },
+    "7": {
+      "total_visits": 8,
+      "as_start": 0,
+      "as_end": 2,
+      "mean_position": 0.7600093984962406,
+      "rollouts_containing": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    "8": {
+      "total_visits": 1,
+      "as_start": 0,
+      "as_end": 0,
+      "mean_position": 0.8571428571428571,
+      "rollouts_containing": [
+        0
+      ]
+    },
+    "9": {
+      "total_visits": 1,
+      "as_start": 0,
+      "as_end": 0,
+      "mean_position": 0.9285714285714286,
+      "rollouts_containing": [
+        0
+      ]
+    },
+    "10": {
+      "total_visits": 1,
+      "as_start": 0,
+      "as_end": 1,
+      "mean_position": 1.0,
+      "rollouts_containing": [
+        0
+      ]
+    },
+    "11": {
+      "total_visits": 1,
+      "as_start": 1,
+      "as_end": 0,
+      "mean_position": 0.0,
+      "rollouts_containing": [
+        1
+      ]
+    },
+    "12": {
+      "total_visits": 6,
+      "as_start": 0,
+      "as_end": 0,
+      "mean_position": 0.2138157894736842,
+      "rollouts_containing": [
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    "13": {
+      "total_visits": 5,
+      "as_start": 0,
+      "as_end": 0,
+      "mean_position": 0.570657894736842,
+      "rollouts_containing": [
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    "14": {
+      "total_visits": 13,
+      "as_start": 0,
+      "as_end": 1,
+      "mean_position": 0.6854251012145749,
+      "rollouts_containing": [
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    "15": {
+      "total_visits": 3,
+      "as_start": 0,
+      "as_end": 0,
+      "mean_position": 0.5526315789473685,
+      "rollouts_containing": [
+        1,
+        3
+      ]
+    },
+    "16": {
+      "total_visits": 1,
+      "as_start": 0,
+      "as_end": 0,
+      "mean_position": 0.8,
+      "rollouts_containing": [
+        1
+      ]
+    },
+    "17": {
+      "total_visits": 1,
+      "as_start": 0,
+      "as_end": 0,
+      "mean_position": 0.9,
+      "rollouts_containing": [
+        1
+      ]
+    },
+    "18": {
+      "total_visits": 1,
+      "as_start": 1,
+      "as_end": 0,
+      "mean_position": 0.0,
+      "rollouts_containing": [
+        2
+      ]
+    },
+    "19": {
+      "total_visits": 1,
+      "as_start": 0,
+      "as_end": 0,
+      "mean_position": 0.1875,
+      "rollouts_containing": [
+        2
+      ]
+    },
+    "20": {
+      "total_visits": 2,
+      "as_start": 0,
+      "as_end": 0,
+      "mean_position": 0.26151315789473684,
+      "rollouts_containing": [
+        2,
+        3
+      ]
+    },
+    "21": {
+      "total_visits": 1,
+      "as_start": 0,
+      "as_end": 0,
+      "mean_position": 0.4375,
+      "rollouts_containing": [
+        2
+      ]
+    },
+    "22": {
+      "total_visits": 1,
+      "as_start": 0,
+      "as_end": 0,
+      "mean_position": 0.5,
+      "rollouts_containing": [
+        2
+      ]
+    },
+    "23": {
+      "total_visits": 1,
+      "as_start": 0,
+      "as_end": 0,
+      "mean_position": 0.5625,
+      "rollouts_containing": [
+        2
+      ]
+    },
+    "24": {
+      "total_visits": 1,
+      "as_start": 0,
+      "as_end": 0,
+      "mean_position": 0.625,
+      "rollouts_containing": [
+        2
+      ]
+    },
+    "25": {
+      "total_visits": 1,
+      "as_start": 0,
+      "as_end": 0,
+      "mean_position": 0.875,
+      "rollouts_containing": [
+        2
+      ]
+    },
+    "26": {
+      "total_visits": 1,
+      "as_start": 0,
+      "as_end": 1,
+      "mean_position": 1.0,
+      "rollouts_containing": [
+        2
+      ]
+    },
+    "27": {
+      "total_visits": 1,
+      "as_start": 0,
+      "as_end": 0,
+      "mean_position": 0.10526315789473684,
+      "rollouts_containing": [
+        3
+      ]
+    },
+    "28": {
+      "total_visits": 1,
+      "as_start": 0,
+      "as_end": 0,
+      "mean_position": 0.2631578947368421,
+      "rollouts_containing": [
+        3
+      ]
+    },
+    "29": {
+      "total_visits": 1,
+      "as_start": 0,
+      "as_end": 0,
+      "mean_position": 0.3157894736842105,
+      "rollouts_containing": [
+        3
+      ]
+    },
+    "30": {
+      "total_visits": 1,
+      "as_start": 0,
+      "as_end": 0,
+      "mean_position": 0.8947368421052632,
+      "rollouts_containing": [
+        3
+      ]
+    },
+    "31": {
+      "total_visits": 1,
+      "as_start": 0,
+      "as_end": 0,
+      "mean_position": 0.5,
+      "rollouts_containing": [
+        4
+      ]
+    },
+    "32": {
+      "total_visits": 1,
+      "as_start": 0,
+      "as_end": 0,
+      "mean_position": 0.6,
+      "rollouts_containing": [
+        4
+      ]
+    }
+  },
+  "metadata": {
+    "n_rollouts": 5,
+    "n_clusters": 33,
+    "avg_pathway_length": 14.8
+  }
+}
