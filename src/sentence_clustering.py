@@ -12,8 +12,7 @@ from sklearn.metrics import silhouette_score
 
 
 def gather_cot_sentences(
-    rollouts_path: str,
-) -> Tuple[List[str], Dict[int, Set[int]]]:
+    rollouts_path: str, ) -> Tuple[List[str], Dict[int, Set[int]]]:
     """Return (sentences, sentence_index_to_rollout_ids) for all responses.
 
     sentence_index_to_rollout_ids maps sentence index (in the returned sentences list)
@@ -34,18 +33,24 @@ def gather_cot_sentences(
     return sentences, sentence_index_to_rollout_ids
 
 
-def load_embedder(model_name: str = "sentence-transformers/all-MiniLM-L6-v2") -> SentenceTransformer:
+def load_embedder(
+    model_name: str = "sentence-transformers/all-MiniLM-L6-v2"
+) -> SentenceTransformer:
     """Load a sentence-transformers model."""
     return SentenceTransformer(model_name)
 
 
-def embed_sentences(embedder: SentenceTransformer, sentences: List[str]) -> np.ndarray:
+def embed_sentences(embedder: SentenceTransformer,
+                    sentences: List[str]) -> np.ndarray:
     """Compute embeddings for sentences as a float32 array of shape (n, d)."""
-    embeddings = embedder.encode(sentences, convert_to_numpy=True, normalize_embeddings=True)
+    embeddings = embedder.encode(sentences,
+                                 convert_to_numpy=True,
+                                 normalize_embeddings=True)
     return embeddings.astype(np.float32)
 
 
-def cluster_by_cosine_threshold(embeddings: np.ndarray, threshold: float) -> List[int]:
+def cluster_by_cosine_threshold(embeddings: np.ndarray,
+                                threshold: float) -> List[int]:
     """Cluster by connecting pairs with cosine similarity >= threshold; return labels."""
     num_items = embeddings.shape[0]
     if num_items == 0:
@@ -120,7 +125,7 @@ def plot_silhouette_vs_threshold(
 
     x_vals: List[float] = []
     y_vals: List[float] = []
-    
+
     for t in thresholds:
         labels = cluster_by_cosine_threshold(embeddings, t)
         num_clusters = len(set(labels))
@@ -132,7 +137,7 @@ def plot_silhouette_vs_threshold(
 
     plt.figure(figsize=(6, 4))
     plt.plot(x_vals, y_vals, marker="o")
-    plt.xlabel("Cosine similarity threshold") 
+    plt.xlabel("Cosine similarity threshold")
     plt.ylabel("Silhouette score")
     plt.title("Silhouette Score vs Cosine Threshold")
     plt.grid(True, alpha=0.3)
@@ -141,7 +146,8 @@ def plot_silhouette_vs_threshold(
     plt.close()
 
 
-def compute_cluster_centroid(embeddings: np.ndarray, member_indices: List[int]) -> np.ndarray:
+def compute_cluster_centroid(embeddings: np.ndarray,
+                             member_indices: List[int]) -> np.ndarray:
     """Compute centroid as mean of member embeddings and L2-normalize it."""
     centroid = embeddings[member_indices].mean(axis=0)
     norm = np.linalg.norm(centroid)
@@ -181,14 +187,17 @@ def export_clusters_to_json(
     clusters_output: List[Dict[str, Any]] = []
     for cluster_id, member_indices in sorted(cluster_id_to_members.items()):
         centroid = compute_cluster_centroid(embeddings, member_indices)
-        rep_idx, rep_sentence = select_representative_sentence(embeddings, member_indices, centroid, sentences)
+        rep_idx, rep_sentence = select_representative_sentence(
+            embeddings, member_indices, centroid, sentences)
 
         # Keep duplicates in order (multiplicity preserved)
         sentences_list: List[Dict[str, Any]] = []
         for s_idx in member_indices:
             sentences_list.append({
-                "text": sentences[s_idx],
-                "rollout_ids": sorted(list(sentence_index_to_rollout_ids.get(s_idx, set()))),
+                "text":
+                sentences[s_idx],
+                "rollout_ids":
+                sorted(list(sentence_index_to_rollout_ids.get(s_idx, set()))),
             })
 
         # Also aggregate identical texts to report multiplicity
@@ -198,13 +207,17 @@ def export_clusters_to_json(
             if txt not in agg:
                 agg[txt] = {"count": 0, "rollout_ids": set()}
             agg[txt]["count"] += 1
-            agg[txt]["rollout_ids"].update(sentence_index_to_rollout_ids.get(s_idx, set()))
+            agg[txt]["rollout_ids"].update(
+                sentence_index_to_rollout_ids.get(s_idx, set()))
         unique_sentences: List[Dict[str, Any]] = []
         for txt, payload in agg.items():
             unique_sentences.append({
-                "text": txt,
-                "count": int(payload["count"]),
-                "rollout_ids": sorted(list(payload["rollout_ids"]))
+                "text":
+                txt,
+                "count":
+                int(payload["count"]),
+                "rollout_ids":
+                sorted(list(payload["rollout_ids"]))
             })
         # Stable sort by descending count then text
         unique_sentences.sort(key=lambda d: (-d["count"], d["text"]))
@@ -219,7 +232,10 @@ def export_clusters_to_json(
         })
 
     with open(out_path, "w", encoding="utf-8") as f:
-        json.dump({"clusters": clusters_output}, f, ensure_ascii=False, indent=2)
+        json.dump({"clusters": clusters_output},
+                  f,
+                  ensure_ascii=False,
+                  indent=2)
 
 
 def cluster_sentences(
@@ -233,6 +249,5 @@ def cluster_sentences(
     embedder = load_embedder(embed_model)
     embeddings = embed_sentences(embedder, sentences)
     labels = cluster_by_cosine_threshold(embeddings, threshold)
-    export_clusters_to_json(out_json_path, labels, embeddings, sentences, sent_idx_to_rollout_ids)
-
-
+    export_clusters_to_json(out_json_path, labels, embeddings, sentences,
+                            sent_idx_to_rollout_ids)

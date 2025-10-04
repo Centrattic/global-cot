@@ -25,7 +25,9 @@ def build_sentence_cluster_index(
         cluster_ids.add(cid)
         for item in cluster.get("sentences", []):
             text = str(item.get("text", "")).strip()
-            rollout_ids: List[int] = [int(x) for x in item.get("rollout_ids", [])]
+            rollout_ids: List[int] = [
+                int(x) for x in item.get("rollout_ids", [])
+            ]
             for rid in rollout_ids:
                 key = (text, rid)
                 if key not in index:
@@ -191,10 +193,18 @@ def build_and_write_pathways(
 
 
 def build_arg_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(description="Build sentence pathways from rollouts and clusters JSON")
-    p.add_argument("--rollouts", default="/Users/jennakainic/global-cot/responses", help="Path to responses folder (new format) or rollouts.json file (legacy)")
-    p.add_argument("--threshold", type=float, default=0.8, help="Threshold for clustering and pathways identification")
-    
+    p = argparse.ArgumentParser(
+        description="Build sentence pathways from rollouts and clusters JSON")
+    p.add_argument(
+        "--rollouts",
+        default="/Users/jennakainic/global-cot/responses",
+        help=
+        "Path to responses folder (new format) or rollouts.json file (legacy)")
+    p.add_argument("--threshold",
+                   type=float,
+                   default=0.8,
+                   help="Threshold for clustering and pathways identification")
+
     return p
 
 
@@ -207,4 +217,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

@@ -1,12 +1,13 @@
 import argparse
 import json
 
+
 def save_clustered_pathways_json(
-    clusters,  # List[Dict] with cluster info (e.g., id, freq, sentences, etc.)
-    pathways,  # List[Dict] with pathway info (e.g., rollout_id, cluster_sequence, etc.)
-    edges,
-    out_path: str,
-    transitions_edges=None,  # Optional[List[Dict]] from pathways['edges'] or ['transitions']['edges']
+        clusters,  # List[Dict] with cluster info (e.g., id, freq, sentences, etc.)
+        pathways,  # List[Dict] with pathway info (e.g., rollout_id, cluster_sequence, etc.)
+        edges,
+        out_path: str,
+        transitions_edges=None,  # Optional[List[Dict]] from pathways['edges'] or ['transitions']['edges']
 ):
     """
     Save a JSON file with nodes (clusters) and rollouts (pathways as edge lists).
@@ -21,7 +22,7 @@ def save_clustered_pathways_json(
             "sentences": c.get("unique_sentences"),
         }
         nodes.append(node)
-    
+
     edges = []
     for e in edges:
         edge = {
@@ -40,28 +41,30 @@ def save_clustered_pathways_json(
             edge = {
                 "from_cluster": cluster_seq[i],
                 "to_cluster": cluster_seq[i + 1],
-                "freq": 1 # TODO CHECK THINKING HERE -- difference between 1 rollout and aggregate
+                "freq":
+                1  # TODO CHECK THINKING HERE -- difference between 1 rollout and aggregate
             }
             edges.append(edge)
-        rollout = {
-            "rollout_id": p.get("rollout_id"),
-            "edges": edges
-        }
+        rollout = {"rollout_id": p.get("rollout_id"), "edges": edges}
         rollouts.append(rollout)
 
-    out = {
-        "nodes": nodes,
-        "edges": edges,
-        "rollouts": rollouts
-    }
+    out = {"nodes": nodes, "edges": edges, "rollouts": rollouts}
     with open(out_path, "w") as f:
         json.dump(out, f, indent=2)
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Format clustered pathways and save as JSON.")
-    parser.add_argument("--threshold", type=float, default=0.8, help="Threshold for clustering and pathways identification")
-    parser.add_argument("--out", type=str, default="formatted_sentence_outputs_0.8.json", help="Output JSON file path")
+    parser = argparse.ArgumentParser(
+        description="Format clustered pathways and save as JSON.")
+    parser.add_argument(
+        "--threshold",
+        type=float,
+        default=0.8,
+        help="Threshold for clustering and pathways identification")
+    parser.add_argument("--out",
+                        type=str,
+                        default="formatted_sentence_outputs_0.8.json",
+                        help="Output JSON file path")
     args = parser.parse_args()
 
     clusters_path = f"/Users/jennakainic/global-cot/clusters/clusters_{args.threshold}.json"
@@ -76,9 +79,10 @@ def main():
         clusters = clusters["clusters"]
     if isinstance(pathways, dict) and "pathways" in pathways:
         edges = pathways["edges"]
-        pathways = pathways["pathways"]  
+        pathways = pathways["pathways"]
 
     save_clustered_pathways_json(clusters, pathways, edges, args.out)
+
 
 if __name__ == "__main__":
     main()
