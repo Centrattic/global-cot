@@ -1,0 +1,27 @@
+🦥 Unsloth: Will patch your computer to enable 2x faster free finetuning.
+🦥 Unsloth Zoo will now patch everything to make training faster!
+Loading model with Unsloth FastLanguageModel
+==((====))==  Unsloth 2025.9.11: Fast Gpt_Oss patching. Transformers: 4.56.2.
+   \\   /|    NVIDIA GH200 480GB. Num GPUs = 1. Max memory: 94.5 GB. Platform: Linux.
+O^O/ \_/ \    Torch: 2.8.0+cu129. CUDA: 9.0. CUDA Toolkit: 12.9. Triton: 3.4.0
+\        /    Bfloat16 = TRUE. FA [Xformers = 0.0.32.post2. FA2 = False]
+ "-____-"     Free license: http://github.com/unslothai/unsloth
+Unsloth: Fast downloading is enabled - ignore downloading bars which are red colored!
+Loading checkpoint shards:   0%|                                                                                                                           | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|████████████████████████████▊                                                                                      | 1/4 [00:01<00:04,  1.39s/it]Loading checkpoint shards:  50%|█████████████████████████████████████████████████████████▌                                                         | 2/4 [00:02<00:03,  1.50s/it]Loading checkpoint shards:  75%|██████████████████████████████████████████████████████████████████████████████████████▎                            | 3/4 [00:04<00:01,  1.41s/it]Loading checkpoint shards: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 4/4 [00:04<00:00,  1.11it/s]Loading checkpoint shards: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 4/4 [00:04<00:00,  1.10s/it]
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/runpy.py", line 196, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/usr/lib/python3.10/runpy.py", line 86, in _run_code
+    exec(code, run_globals)
+  File "/lambda/nfs/riya-probing/global-cot/src/activation_extractor.py", line 426, in <module>
+    main()
+  File "/lambda/nfs/riya-probing/global-cot/src/activation_extractor.py", line 391, in main
+    extractor = ActivationExtractor()
+  File "/lambda/nfs/riya-probing/global-cot/src/activation_extractor.py", line 51, in __init__
+    self.enc = load_harmony_encoding(HarmonyEncodingName.HARMONY_GPT_OSS)
+  File "/lambda/nfs/riya-probing/global-cot/.venv/lib/python3.10/site-packages/openai_harmony/__init__.py", line 689, in load_harmony_encoding
+    inner: _PyHarmonyEncoding = _load_harmony_encoding(name)
+openai_harmony.HarmonyError: error downloading or loading vocab file: failed to download or load vocab file
+Model loaded successfully!
+Tokenizer configured successfully!
+Loading harmony encoding...

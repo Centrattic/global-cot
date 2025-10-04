@@ -1,0 +1,16 @@
+Traceback (most recent call last):
+  File "/usr/lib/python3.10/runpy.py", line 196, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/usr/lib/python3.10/runpy.py", line 86, in _run_code
+    exec(code, run_globals)
+  File "/lambda/nfs/riya-probing/global-cot/src/activation_extractor.py", line 2, in <module>
+    import unsloth
+  File "/lambda/nfs/riya-probing/pivotal-research/pivotal_env/lib/python3.10/site-packages/unsloth/__init__.py", line 233, in <module>
+  File "/lambda/nfs/riya-probing/pivotal-research/pivotal_env/lib/python3.10/site-packages/unsloth/models/__init__.py", line 15, in <module>
+    from .loader  import FastLanguageModel
+  File "/lambda/nfs/riya-probing/pivotal-research/pivotal_env/lib/python3.10/site-packages/unsloth/models/loader.py", line 15, in <module>
+    from ._utils import is_bfloat16_supported, HAS_FLASH_ATTENTION, HAS_FLASH_ATTENTION_SOFTCAPPING
+  File "/lambda/nfs/riya-probing/pivotal-research/pivotal_env/lib/python3.10/site-packages/unsloth/models/_utils.py", line 193, in <module>
+    from xformers import __version__ as xformers_version
+ModuleNotFoundError: No module named 'xformers'
+🦥 Unsloth: Will patch your computer to enable 2x faster free finetuning.
