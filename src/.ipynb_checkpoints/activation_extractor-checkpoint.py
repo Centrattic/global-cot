@@ -10,6 +10,12 @@ import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from unsloth import FastLanguageModel
 from src.utils import extract_sentences
+from tqdm import tqdm
+
+# only if on Aarch64
+import os
+os.environ["TIKTOKEN_ENCODINGS_BASE"] = os.path.expanduser("~/.cache/oh/encodings")
+
 from openai_harmony import (
     load_harmony_encoding,
     HarmonyEncodingName,
@@ -20,7 +26,6 @@ from openai_harmony import (
     SystemContent,
     ReasoningEffort
 )
-from tqdm import tqdm
 
 class ActivationExtractor:
     def __init__(self, model_name: str = "unsloth/gpt-oss-20b-unsloth-bnb-4bit", cache_dir: Path = Path("activation_cache")):
@@ -61,7 +66,7 @@ class ActivationExtractor:
             layer_dir.mkdir(exist_ok=True)
         
         # Initialize responses folder
-        self.responses_dir = self.cache_dir / "responses"
+        self.responses_dir = Path("responses")
         self.responses_dir.mkdir(exist_ok=True)
     
     def extract_activations(self, prompt: str, max_tokens: int = 512, seed: int = 0) -> Dict[int, Dict[str, np.ndarray]]:

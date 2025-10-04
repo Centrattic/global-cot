@@ -10,6 +10,12 @@ import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from unsloth import FastLanguageModel
 from src.utils import extract_sentences
+from tqdm import tqdm
+
+# only if on Aarch64
+import os
+os.environ["TIKTOKEN_ENCODINGS_BASE"] = os.path.expanduser("~/.cache/oh/encodings")
+
 from openai_harmony import (
     load_harmony_encoding,
     HarmonyEncodingName,
@@ -20,7 +26,6 @@ from openai_harmony import (
     SystemContent,
     ReasoningEffort
 )
-from tqdm import tqdm
 
 class ActivationExtractor:
     def __init__(self, model_name: str = "unsloth/gpt-oss-20b-unsloth-bnb-4bit", cache_dir: Path = Path("activation_cache")):
@@ -51,7 +56,7 @@ class ActivationExtractor:
         self.enc = load_harmony_encoding(HarmonyEncodingName.HARMONY_GPT_OSS)
         print("Harmony encoding loaded successfully!")
         
-        # Track completion index
+        # Track completion index (will be set to seed)
         self.completion_index = 0
         
         # Initialize layer folders (extract from specific layers)
@@ -61,11 +66,14 @@ class ActivationExtractor:
             layer_dir.mkdir(exist_ok=True)
         
         # Initialize responses folder
-        self.responses_dir = "responses"
+        self.responses_dir = Path("responses")
         self.responses_dir.mkdir(exist_ok=True)
     
     def extract_activations(self, prompt: str, max_tokens: int = 512, seed: int = 0) -> Dict[int, Dict[str, np.ndarray]]:
         """Extract activations for chain-of-thought tokens only."""
+
+        # Set completion index to seed
+        self.completion_index = seed
 
         # print("[DEBUG] SystemContent.new()")
         # print(dir(SystemContent.new()))
@@ -267,7 +275,7 @@ class ActivationExtractor:
         }
         
         # Store completion metadata in separate file
-        completion_file = self.responses_dir / f"completion_{self.completion_index}.json"
+        completion_file = self.responses_dir / f"completion_{seed}.json"
         with open(completion_file, 'w') as f:
             json.dump(completion_data, f, indent=2)
         
@@ -282,10 +290,8 @@ class ActivationExtractor:
             sentence_activations = self._aggregate_by_sentences(activations, sentences, cot_content, cot_tokens)
             
             # Save to .npy file
-            npy_path = layer_dir / f"completion_{self.completion_index}.npy"
+            npy_path = layer_dir / f"completion_{seed}.npy"
             np.save(npy_path, sentence_activations)
-        
-        self.completion_index += 1
     
     def _split_into_sentences(self, text: str) -> List[str]:
         """Split text into sentences, preserving punctuation and merging short sentences."""
@@ -320,19 +326,19 @@ class ActivationExtractor:
         
         return sentence_activations
     
-    def load_activations(self, layer: int, completion_index: int) -> Optional[Dict[str, np.ndarray]]:
-        """Load activations for a specific layer and completion."""
+    def load_activations(self, layer: int, seed: int) -> Optional[Dict[str, np.ndarray]]:
+        """Load activations for a specific layer and seed."""
         layer_dir = self.cache_dir / str(layer)
-        npy_path = layer_dir / f"completion_{completion_index}.npy"
+        npy_path = layer_dir / f"completion_{seed}.npy"
         
         if npy_path.exists():
             return np.load(npy_path, allow_pickle=True).item()
         return None
     
-    def debug_activation_format(self, layer: int, completion_index: int):
+    def debug_activation_format(self, layer: int, seed: int):
         """Debug function to inspect .npy file format and structure."""
         layer_dir = self.cache_dir / str(layer)
-        npy_path = layer_dir / f"completion_{completion_index}.npy"
+        npy_path = layer_dir / f"completion_{seed}.npy"
         
         if not npy_path.exists():
             print(f"File not found: {npy_path}")
@@ -365,9 +371,9 @@ class ActivationExtractor:
         
         print(f"\n=== END DEBUG ===\n")
     
-    def get_completion_info(self, completion_index: int) -> Optional[Dict[str, Any]]:
-        """Get completion information for a specific completion."""
-        completion_file = self.responses_dir / f"completion_{completion_index}.json"
+    def get_completion_info(self, seed: int) -> Optional[Dict[str, Any]]:
+        """Get completion information for a specific seed."""
+        completion_file = self.responses_dir / f"completion_{seed}.json"
         if completion_file.exists():
             with open(completion_file, 'r') as f:
                 return json.load(f)

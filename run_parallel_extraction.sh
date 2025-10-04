@@ -1,38 +1,14 @@
-#!/bin/bash
+python -m src.activation_extractor --start 0 --end 50 --device 0 &
+python -m src.activation_extractor --start 50 --end 100 --device 0 &
 
-# Simple script to run 7 parallel activation extraction processes
-# Each process handles 50 completions
+python -m src.activation_extractor --start 100 --end 150 --device 0 &
+python -m src.activation_extractor --start 150 --end 200 --device 0 &
 
-<<<<<<< Updated upstream
-echo "Starting 4 parallel activation extraction processes..."
-=======
-echo "Starting 6 parallel activation extraction processes..."
->>>>>>> Stashed changes
+python -m src.activation_extractor --start 200 --end 250 --device 0 &
+python -m src.activation_extractor --start 250 --end 300 --device 0 &
 
-# Create logs directory if it doesn't exist
-mkdir -p logs
+python -m src.activation_extractor --start 300 --end 350 --device 0 &
+python -m src.activation_extractor --start 350 --end 400 --device 0 &
 
-# Start all 7 processes in background
-<<<<<<< Updated upstream
-python -m src.activation_extractor --start 0 --end 5 > logs/process_1.log 2>&1 &
-python -m src.activation_extractor --start 5 --end 10 > logs/process_2.log 2>&1 &
-python -m src.activation_extractor --start 10 --end 15 > logs/process_3.log 2>&1 &
-
-echo "All 4 processes started!"
-=======
-python -m src.activation_extractor --start 0 --end 50 --device 0 > logs/process_1.log 2>&1 &
-python -m src.activation_extractor --start 50 --end 100 --device 0 > logs/process_2.log 2>&1 &
-
-echo "All 6 processes started!"
->>>>>>> Stashed changes
-echo "Log files:"
-echo "  logs/process_1.log (completions 0-49)"
-echo "  logs/process_2.log (completions 50-99)"
-echo "  logs/process_3.log (completions 100-149)"
-echo ""
-echo "To monitor progress:"
-echo "  tail -f logs/process_1.log"
-echo "  tail -f logs/process_2.log"
-echo "  etc."
-echo ""
-echo "Script finished. Processes are running in background."
+python -m src.activation_extractor --start 400 --end 450 --device 0 &
+python -m src.activation_extractor --start 450 --end 500 --device 0 &

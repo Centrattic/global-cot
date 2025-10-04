@@ -1,7 +1,33 @@
 [project]
 name = "global-cot"
 version = "0.1.0"
-description = "Add your description here"
+description = "Global Chain of Thought Analysis - Extracting and analyzing activations from language models"
 readme = "README.md"
 requires-python = ">=3.10"
-dependencies = []
+dependencies = [
+    "torch>=2.0.0",
+    "numpy>=1.24.0",
+    "transformers>=4.30.0",
+    "unsloth>=2024.1",
+    "openai-harmony>=0.0.4.0",
+    "sentence-transformers>=2.2.0",
+    "scikit-learn>=1.3.0",
+    "tqdm>=4.65.0",
+    "matplotlib>=3.7.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "black>=23.0.0",
+    "flake8>=6.0.0",
+    "mypy>=1.5.0"
+]
+
+[tool.uv]
+
+# Allow fallback to source distributions for packages without ARM64 wheels
+index-url = "https://pypi.org/simple"
+extra-index-url = [
+    "https://download.pytorch.org/whl/cu128"  # CU-128 PyTorch for ARM64 compatibility
+]
