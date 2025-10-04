@@ -17,7 +17,7 @@ from src.utils import load_responses_as_rollouts_fields
 print("Setting params...")
 rollouts_path = "/Users/jennakainic/global-cot/responses"
 out_path = "/Users/jennakainic/global-cot/clusters"
-thresholds = [0.7 + 0.05*i for i in range(6)]
+thresholds = [0.6 + 0.05*i for i in range(8)]
 
 #%%
 print("Gathering sentences...")
@@ -42,7 +42,7 @@ sim_values = sims[triu_indices]
 
 # Plot histogram
 plt.figure(figsize=(8, 5))
-plt.hist(sim_values, bins=50, density=True)
+plt.hist(sim_values, bins=65, density=True)
 plt.xlabel("Cosine similarity")
 plt.ylabel("Density")
 plt.title("Distribution of Pairwise Cosine Similarities")
@@ -56,6 +56,29 @@ print(f"Std similarity: {sim_values.std():.3f}")
 print(f"Min similarity: {sim_values.min():.3f}")
 print(f"Max similarity: {sim_values.max():.3f}")
 
+#%%
+print("Computing random vector cosine similarities distribution...")
+dim = E.shape[1]
+n = len(E)
+rand_E = np.random.randn(n, dim)
+rand_E /= np.linalg.norm(rand_E, axis=1, keepdims=True)
+rand_sims = rand_E @ rand_E.T
+rand_sim_values = rand_sims[triu_indices]
+
+plt.figure(figsize=(8, 5))
+plt.hist(rand_sim_values, bins=65, density=True)
+plt.xlabel("Cosine similarity")
+plt.ylabel("Density")
+plt.title("Distribution of Pairwise Cosine Similarities (Random Vectors)")
+plt.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.savefig(out_path+"/random_similarity_distribution.png", dpi=150)
+plt.close()
+
+print(f"Random mean similarity: {rand_sim_values.mean():.3f}")
+print(f"Random std similarity: {rand_sim_values.std():.3f}")
+print(f"Random min similarity: {rand_sim_values.min():.3f}")
+print(f"Random max similarity: {rand_sim_values.max():.3f}")
 
 #%%
 print("Plotting clusters vs threshold...")
@@ -67,7 +90,7 @@ plot_silhouette_vs_threshold(E, thresholds, out_path+"/silhouette_vs_threshold.p
 # %%
 #%% Generate clusterings for candidate thresholds - EXAMPLE
 print("Generating both clusterings...")
-thresholds_to_compare = [0.675, 0.85]
+thresholds_to_compare = [0.8, 0.85]
 
 for t in thresholds_to_compare:
     print(f"Threshold: {t}")
@@ -90,6 +113,6 @@ for t in thresholds_to_compare:
             print(f"  {sent}")
 # %%
 # EXAMPLE - create and export clusters to json
-threshold = 0.72
+threshold = 0.8
 cluster_sentences(rollouts_path, "sentence-transformers/all-MiniLM-L6-v2", threshold, out_path+f"/clusters_{threshold}.json")
 # %%

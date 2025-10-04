@@ -196,11 +196,11 @@ def build_and_write_pathways(
 def build_arg_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(description="Build sentence pathways from rollouts and clusters JSON")
     p.add_argument("--rollouts", default="/Users/jennakainic/global-cot/responses", help="Path to responses folder (new format) or rollouts.json file (legacy)")
-    p.add_argument("--clusters", default="/Users/jennakainic/global-cot/clusters/clusters_0.72.json", help="Path to clusters.json (from export_clusters_to_json)")
+    p.add_argument("--clusters", default="/Users/jennakainic/global-cot/clusters/clusters_0.8.json", help="Path to clusters.json (from export_clusters_to_json)")
     p.add_argument("--out", default="/Users/jennakainic/global-cot/pathways.json", help="Output pathways JSON path")
     return p
 
-å
+
 def main() -> None:
     args = build_arg_parser().parse_args()
     build_and_write_pathways(args.rollouts, args.clusters, args.out)
