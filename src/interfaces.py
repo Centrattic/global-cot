@@ -54,13 +54,10 @@ class PromptNode(Node):
         super().__init("prompt", 0, [prompt]) # freq is meaningless here
 
 class Pathway:
-    def __init__(self, nodes: List[Node], edges: List[Edge]):
-        self.nodes = nodes
+    def __init__(self, edges: List[Edge]):
         self.edges = edges
     
     def print(self):
         print(f"Pathway:")
-        for node in self.nodes:
-            node.print()
         for edge in self.edges:
             edge.print()
