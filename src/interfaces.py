@@ -45,12 +45,22 @@ class Node:
         print(f"  Has Activations: {self.activations is not None}")
         print(f"  Has Embeddings: {self.sentence_embeddings is not None}")
 
-    class AnswerNode(Node):
-        def __init__(self, true_answer: int, candidate_answers: List[str]):
+class AnswerNode(Node):
+    def __init__(self, true_answer: int, candidate_answers: List[str]):
             super().__init(f"Answer: {true_answer}", 0, candidate_answers) # freq is meaningless here
     
-    class PromptNode(Node):
-        def __init__(self, prompt: str):
-            super().__init("prompt", 0, [prompt]) # freq is meaningless here
+class PromptNode(Node):
+    def __init__(self, prompt: str):
+        super().__init("prompt", 0, [prompt]) # freq is meaningless here
 
-    # TODO Do we want a pathway class?
+class Pathway:
+    def __init__(self, nodes: List[Node], edges: List[Edge]):
+        self.nodes = nodes
+        self.edges = edges
+    
+    def print(self):
+        print(f"Pathway:")
+        for node in self.nodes:
+            node.print()
+        for edge in self.edges:
+            edge.print()
