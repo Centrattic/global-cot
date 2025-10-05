@@ -8,6 +8,8 @@ import numpy as np
 from .utils import load_responses_as_rollouts_fields, extract_sentences, load_clusters_json
 
 from sentence_transformers import SentenceTransformer
+import torch
+ 
 from sklearn.metrics import silhouette_score
 from joblib import Parallel, delayed
 from scipy.sparse import csr_matrix
@@ -17,71 +19,67 @@ from scipy.sparse.csgraph import connected_components
 def gather_cot_sentences(
     rollouts_path: str,
 ) -> Tuple[List[str], Dict[int, Set[int]]]:
-    """Return (sentences, sentence_index_to_rollout_ids) for all responses.
-
-    sentence_index_to_rollout_ids maps sentence index (in the returned sentences list)
-    to a set of rollout row indices where it appears.
-    """
+    """Return (sentences, sentence_index_to_rollout_ids) for all responses."""
     fields = load_responses_as_rollouts_fields(rollouts_path)
     cots: List[str] = fields.get("cot", [])
 
+    sentence_to_index: Dict[str, int] = {}  # Deduplicate
     sentences: List[str] = []
     sentence_index_to_rollout_ids: Dict[int, Set[int]] = {}
 
     for row_index, cot_text in enumerate(cots):
         cot_sentences = extract_sentences(cot_text)
         for s in cot_sentences:
-            sentences.append(s)
-            sentence_idx = len(sentences) - 1
-            sentence_index_to_rollout_ids[sentence_idx] = {row_index}
+            if s in sentence_to_index:
+                # Sentence already exists
+                sentence_idx = sentence_to_index[s]
+                sentence_index_to_rollout_ids[sentence_idx].add(row_index)
+            else:
+                # New sentence
+                sentence_idx = len(sentences)
+                sentence_to_index[s] = sentence_idx
+                sentences.append(s)
+                sentence_index_to_rollout_ids[sentence_idx] = {row_index}
+    
     return sentences, sentence_index_to_rollout_ids
 
 
 def load_embedder(model_name: str = "sentence-transformers/all-MiniLM-L6-v2") -> SentenceTransformer:
-    """Load a sentence-transformers model."""
-    return SentenceTransformer(model_name)
+    model = SentenceTransformer(model_name)
+    if torch.cuda.is_available():
+        model = model.to('cuda')
+    return model
 
 
-def embed_sentences(embedder: SentenceTransformer, sentences: List[str]) -> np.ndarray:
-    """Compute embeddings for sentences as a float32 array of shape (n, d)."""
-    embeddings = embedder.encode(sentences, convert_to_numpy=True, normalize_embeddings=True)
+def embed_sentences(
+    embedder: SentenceTransformer,
+    sentences: List[str],
+    batch_size: int = 128,
+) -> np.ndarray:
+    """Compute embeddings for sentences as a float32 array of shape (n, d).
+
+    Supports larger batch sizes and optional multi-process encoding.
+    """
+    embeddings = embedder.encode(
+        sentences,
+        batch_size=int(batch_size),
+        convert_to_numpy=True,
+        normalize_embeddings=True,
+        show_progress_bar=True,
+    )
     return embeddings.astype(np.float32)
 
 
 def cluster_by_cosine_threshold(embeddings: np.ndarray, threshold: float, precomputed_sims: np.ndarray = None) -> List[int]:
-    """Cluster by connecting pairs with cosine similarity >= threshold; return labels."""
-    num_items = embeddings.shape[0]
-    if num_items == 0:
+    if embeddings.shape[0] == 0:
         return []
-    if num_items == 1:
+    if embeddings.shape[0] == 1:
         return [0]
-
+    
     sims = precomputed_sims if precomputed_sims is not None else embeddings @ embeddings.T
-
-    # Build adjacency list
-    adjacency: List[List[int]] = [[] for _ in range(num_items)]
-    for i in range(num_items):
-        for j in range(i + 1, num_items):
-            if sims[i, j] >= threshold:
-                adjacency[i].append(j)
-                adjacency[j].append(i)
-
-    # Connected components via DFS
-    labels = [-1] * num_items
-    current_label = 0
-    for start in range(num_items):
-        if labels[start] != -1:
-            continue
-        stack = [start]
-        labels[start] = current_label
-        while stack:
-            node = stack.pop()
-            for neigh in adjacency[node]:
-                if labels[neigh] == -1:
-                    labels[neigh] = current_label
-                    stack.append(neigh)
-        current_label += 1
-    return labels
+    
+    # Use the faster scipy version
+    return cluster_by_cosine_threshold_from_sims(sims, threshold)
 
 
 def cluster_by_cosine_threshold_from_sims(sims: np.ndarray, threshold: float) -> List[int]:

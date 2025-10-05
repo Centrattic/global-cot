@@ -9,123 +9,176 @@ from src.sentence_clustering import (
     plot_clusters_vs_threshold,
     plot_silhouette_vs_threshold,
     cluster_by_cosine_threshold,
-    cluster_sentences,
     plot_sentence_clusters_vs_threshold_from_json,
+    export_clusters_to_json,
 )
-from src.utils import load_responses_as_rollouts_fields
+import argparse
+import time
 
-#%% Minimal example scaffold
-print("Setting params...")
-# Accept either a folder of response JSONs or a single composite JSON file
-rollouts_path = "/Users/jennakainic/global-cot/processed_responses.json"
-out_path = "/Users/jennakainic/global-cot/clusters"
-thresholds = [0.4 * 0.025*i for i in range(20)]
+def _embed(rollouts_path: str, model: str, batch_size: int, cache_dir: str = None):
+    t0 = time.time()
+    print("Gathering sentences...")
+    sentences, sentence_index_to_rollout_ids = gather_cot_sentences(rollouts_path)
+    print(f"  -> {time.time()-t0:.2f}s, {len(sentences)} sentences")
+    embedder = load_embedder(model)
+    cache_path = os.path.join(cache_dir, "embeddings_cache.npz") if cache_dir else None
+    if cache_path and os.path.exists(cache_path):
+        import numpy as np
+        print(f"Loading cached embeddings from {cache_path}")
+        data = np.load(cache_path, allow_pickle=True)
+        return data['sentences'].tolist(), data['sentence_index_to_rollout_ids'].item(), data['embeddings']
+    t0 = time.time()
+    print("Embedding sentences...")
+    embeddings = embed_sentences(
+        embedder,
+        sentences,
+        batch_size=batch_size,
+    )
+    print(f"  -> {time.time()-t0:.2f}s")
+    if cache_path:
+        import numpy as np
+        os.makedirs(cache_dir, exist_ok=True)
+        np.savez(
+            cache_path,
+            sentences=sentences,
+            sentence_index_to_rollout_ids=sentence_index_to_rollout_ids,
+            embeddings=embeddings,
+        )
+    return sentences, sentence_index_to_rollout_ids, embeddings
 
-#%%
-print("Gathering sentences...")
-sentences, _ = gather_cot_sentences(rollouts_path)
 
-#%%
-print("Embedding sentences...")
-E = embed_sentences(load_embedder("sentence-transformers/paraphrase-mpnet-base-v2"), sentences)
+def run_explore(rollouts_path: str, out_dir: str, model: str, thresholds, batch_size: int, cache_dir: str = None) -> None:
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    sentences, _, E = _embed(rollouts_path, model, batch_size, cache_dir)
+
+    os.makedirs(out_dir, exist_ok=True)
+    # Only save if not already in cache_dir
+    emb_path = os.path.join(out_dir, "sentence_embeddings.npy")
+    if not os.path.exists(emb_path):
+        np.save(emb_path, E)
+
+    sims_path = os.path.join(out_dir, "sentence_sims.npy")
+    if os.path.exists(sims_path):
+        print(f"Loading cached similarity matrix from {sims_path}")
+        sims = np.load(sims_path).astype(np.float32)
+    else:
+        print("Computing pairwise cosine similarities and caching sims...")
+        sims = E @ E.T
+        np.save(sims_path, sims.astype(np.float16))
+        sims = sims.astype(np.float32)
+
+    triu_indices = np.triu_indices(len(E), k=1)
+    sim_values = sims[triu_indices]
+
+    plt.figure(figsize=(8, 5))
+    plt.hist(sim_values, bins=65, density=True)
+    plt.xlabel("Cosine similarity")
+    plt.ylabel("Density")
+    plt.title("Distribution of Pairwise Cosine Similarities")
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.savefig(out_dir+"/similarity_distribution.png", dpi=150)
+    plt.close()
+
+    print(f"Mean similarity: {sim_values.mean():.3f}")
+    print(f"Std similarity: {sim_values.std():.3f}")
+    print(f"Min similarity: {sim_values.min():.3f}")
+    print(f"Max similarity: {sim_values.max():.3f}")
+
+    print("Computing random vector cosine similarities distribution...")
+    dim = E.shape[1]
+    n = len(E)
+    rand_E = np.random.randn(n, dim)
+    rand_E /= np.linalg.norm(rand_E, axis=1, keepdims=True)
+    rand_sims = rand_E @ rand_E.T
+    rand_sim_values = rand_sims[triu_indices]
+
+    plt.figure(figsize=(8, 5))
+    plt.hist(rand_sim_values, bins=65, density=True)
+    plt.xlabel("Cosine similarity")
+    plt.ylabel("Density")
+    plt.title("Distribution of Pairwise Cosine Similarities (Random Vectors)")
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.savefig(out_dir+"/random_similarity_distribution.png", dpi=150)
+    plt.close()
+
+    print(f"Random mean similarity: {rand_sim_values.mean():.3f}")
+    print(f"Random std similarity: {rand_sim_values.std():.3f}")
+    print(f"Random min similarity: {rand_sim_values.min():.3f}")
+    print(f"Random max similarity: {rand_sim_values.max():.3f}")
+
+    print("Plotting clusters vs threshold (reusing cached sims)...")
+    plot_clusters_vs_threshold(E, thresholds, out_dir+"/clusters_vs_threshold.png", precomputed_sims=sims)
+
+    print("Plotting silhouette vs threshold (reusing cached sims)...")
+    plot_silhouette_vs_threshold(E, thresholds, out_dir+"/silhouette_vs_threshold.png", precomputed_sims=sims)
 
 
-#%%
-print("Computing pairwise cosine similarities distribution and caching sims...")
-import numpy as np
-import matplotlib.pyplot as plt
+def run_cluster(rollouts_path: str, out_json_path: str, model: str, threshold: float, batch_size: int, cache_dir: str = None) -> None:
+    sentences, sentence_index_to_rollout_ids, E = _embed(rollouts_path, model, batch_size, cache_dir)
+    labels = cluster_by_cosine_threshold(E, threshold)
+    export_clusters_to_json(out_json_path, labels, E, sentences, sentence_index_to_rollout_ids)
 
-# Compute pairwise cosine similarities
-sims = E @ E.T
 
-# Cache sims to disk for reuse
-os.makedirs(out_path, exist_ok=True)
-np.save(os.path.join(out_path, "sentence_sims.npy"), sims)
+def _parse_args():
+    parser = argparse.ArgumentParser(description="Explore thresholds or cluster sentences.")
+    subparsers = parser.add_subparsers(dest="command", required=True)
 
-# Get upper triangle values (excluding diagonal)
-triu_indices = np.triu_indices(len(E), k=1)
-sim_values = sims[triu_indices]
+    def add_common(p):
+        p.add_argument("--rollouts-path", type=str, default="/Users/jennakainic/global-cot/processed_responses.json")
+        p.add_argument("--out-dir", type=str, default="/Users/jennakainic/global-cot/clusters")
+        p.add_argument("--embedding-model", type=str, default="sentence-transformers/paraphrase-mpnet-base-v2")
+        p.add_argument("--batch-size", type=int, default=2048)
+        p.add_argument("--cache-dir", type=str, default="", help="Directory to cache/reuse embeddings .npz")
 
-# Plot histogram
-plt.figure(figsize=(8, 5))
-plt.hist(sim_values, bins=65, density=True)
-plt.xlabel("Cosine similarity")
-plt.ylabel("Density")
-plt.title("Distribution of Pairwise Cosine Similarities")
-plt.grid(True, alpha=0.3)
-plt.tight_layout()
-plt.savefig(out_path+"/similarity_distribution.png", dpi=150)
-plt.close()
+    explore = subparsers.add_parser("explore", help="Make plots for threshold exploration")
+    add_common(explore)
+    explore.add_argument("--thresholds", type=str, default="", help="Comma-separated list, e.g. 0.7,0.75,0.8")
+    explore.add_argument("--min-threshold", type=float, default=0.4)
+    explore.add_argument("--max-threshold", type=float, default=0.9)
+    explore.add_argument("--num-points", type=int, default=10)
 
-print(f"Mean similarity: {sim_values.mean():.3f}")
-print(f"Std similarity: {sim_values.std():.3f}")
-print(f"Min similarity: {sim_values.min():.3f}")
-print(f"Max similarity: {sim_values.max():.3f}")
+    cluster = subparsers.add_parser("cluster", help="Cluster at a specified threshold and write JSON")
+    add_common(cluster)
+    cluster.add_argument("--threshold", type=float, required=True)
+    cluster.add_argument("--out-json", type=str, default="", help="Output JSON path; defaults to out-dir/clusters_{threshold}.json")
 
-#%%
-print("Computing random vector cosine similarities distribution...")
-dim = E.shape[1]
-n = len(E)
-rand_E = np.random.randn(n, dim)
-rand_E /= np.linalg.norm(rand_E, axis=1, keepdims=True)
-rand_sims = rand_E @ rand_E.T
-rand_sim_values = rand_sims[triu_indices]
+    return parser.parse_args()
 
-plt.figure(figsize=(8, 5))
-plt.hist(rand_sim_values, bins=65, density=True)
-plt.xlabel("Cosine similarity")
-plt.ylabel("Density")
-plt.title("Distribution of Pairwise Cosine Similarities (Random Vectors)")
-plt.grid(True, alpha=0.3)
-plt.tight_layout()
-plt.savefig(out_path+"/random_similarity_distribution.png", dpi=150)
-plt.close()
 
-print(f"Random mean similarity: {rand_sim_values.mean():.3f}")
-print(f"Random std similarity: {rand_sim_values.std():.3f}")
-print(f"Random min similarity: {rand_sim_values.min():.3f}")
-print(f"Random max similarity: {rand_sim_values.max():.3f}")
+def main():
+    args = _parse_args()
+    if args.command == "explore":
+        if args.thresholds:
+            thresholds = [float(x) for x in args.thresholds.split(",") if x]
+        else:
+            if args.num_points <= 1:
+                thresholds = [float(args.min_threshold)]
+            else:
+                step = (args.max_threshold - args.min_threshold) / float(args.num_points - 1)
+                thresholds = [args.min_threshold + step * i for i in range(args.num_points)]
+        run_explore(
+            args.rollouts_path,
+            args.out_dir,
+            args.embedding_model,
+            thresholds,
+            args.batch_size,
+            args.cache_dir or None,
+        )
+    elif args.command == "cluster":
+        out_json = args.out_json if args.out_json else os.path.join(args.out_dir, f"clusters_{args.threshold}.json")
+        os.makedirs(args.out_dir, exist_ok=True)
+        run_cluster(
+            args.rollouts_path,
+            out_json,
+            args.embedding_model,
+            float(args.threshold),
+            args.batch_size,
+            args.cache_dir or None,
+        )
 
-#%%
-print("Plotting clusters vs threshold (reusing cached sims)...")
-plot_clusters_vs_threshold(E, thresholds, out_path+"/clusters_vs_threshold.png", precomputed_sims=sims)
-
-#%%
-print("Plotting silhouette vs threshold (reusing cached sims)...")
-plot_silhouette_vs_threshold(E, thresholds, out_path+"/silhouette_vs_threshold.png", precomputed_sims=sims)
-# %%
-len(sentences)
-#%% Generate clusterings for candidate thresholds - EXAMPLE
-print("Generating both clusterings...")
-thresholds_to_compare = [0.8, 0.85]
-
-for t in thresholds_to_compare:
-    print(f"Threshold: {t}")
-    
-    labels = cluster_by_cosine_threshold(E, t)
-    n_clusters = len(set(labels))
-    
-    print(f"Number of clusters: {n_clusters}")
-    
-    # Show representative sentences
-    from collections import defaultdict
-    clusters_dict = defaultdict(list)
-    for i, label in enumerate(labels):
-        clusters_dict[label].append(sentences[i])
-    
-    for cluster_id in sorted(clusters_dict.keys()):
-        sents = clusters_dict[cluster_id]
-        print(f"\nCluster {cluster_id} ({len(sents)} sentences):")
-        for sent in sents:
-            print(f"  {sent}")
-# %%
-# OPTIONAL: export clusters for multiple thresholds and plot from cached JSONs
-export_thresholds = []  # e.g., [0.75, 0.8, 0.85]
-for t in export_thresholds:
-    print(f"Exporting clusters JSON for threshold {t}...")
-    cluster_sentences(rollouts_path, "sentence-transformers/paraphrase-mpnet-base-v2", t, out_path+f"/clusters_{t}.json")
-
-if export_thresholds:
-    print("Plotting clusters vs threshold from cached JSONs...")
-    plot_sentence_clusters_vs_threshold_from_json(out_path, out_path+"/clusters_vs_threshold_cached.png")
-# %%
+if __name__ == "__main__":
+    main()
