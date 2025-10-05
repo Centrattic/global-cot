@@ -1,6 +1,5 @@
 #%%
 import os, sys
-
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from src.sentence_clustering import (
@@ -11,14 +10,16 @@ from src.sentence_clustering import (
     plot_silhouette_vs_threshold,
     cluster_by_cosine_threshold,
     cluster_sentences,
+    plot_sentence_clusters_vs_threshold_from_json,
 )
 from src.utils import load_responses_as_rollouts_fields
 
 #%% Minimal example scaffold
 print("Setting params...")
-rollouts_path = "/Users/jennakainic/global-cot/responses"
+# Accept either a folder of response JSONs or a single composite JSON file
+rollouts_path = "/Users/jennakainic/global-cot/processed_responses.json"
 out_path = "/Users/jennakainic/global-cot/clusters"
-thresholds = [0.6 + 0.05 * i for i in range(8)]
+thresholds = [0.4 * 0.025*i for i in range(20)]
 
 #%%
 print("Gathering sentences...")
@@ -26,16 +27,20 @@ sentences, _ = gather_cot_sentences(rollouts_path)
 
 #%%
 print("Embedding sentences...")
-E = embed_sentences(load_embedder("sentence-transformers/all-MiniLM-L6-v2"),
-                    sentences)
+E = embed_sentences(load_embedder("sentence-transformers/paraphrase-mpnet-base-v2"), sentences)
+
 
 #%%
-print("Computing pairwise cosine similarities distribution...")
+print("Computing pairwise cosine similarities distribution and caching sims...")
 import numpy as np
 import matplotlib.pyplot as plt
 
 # Compute pairwise cosine similarities
 sims = E @ E.T
+
+# Cache sims to disk for reuse
+os.makedirs(out_path, exist_ok=True)
+np.save(os.path.join(out_path, "sentence_sims.npy"), sims)
 
 # Get upper triangle values (excluding diagonal)
 triu_indices = np.triu_indices(len(E), k=1)
@@ -49,7 +54,7 @@ plt.ylabel("Density")
 plt.title("Distribution of Pairwise Cosine Similarities")
 plt.grid(True, alpha=0.3)
 plt.tight_layout()
-plt.savefig(out_path + "/similarity_distribution.png", dpi=150)
+plt.savefig(out_path+"/similarity_distribution.png", dpi=150)
 plt.close()
 
 print(f"Mean similarity: {sim_values.mean():.3f}")
@@ -73,7 +78,7 @@ plt.ylabel("Density")
 plt.title("Distribution of Pairwise Cosine Similarities (Random Vectors)")
 plt.grid(True, alpha=0.3)
 plt.tight_layout()
-plt.savefig(out_path + "/random_similarity_distribution.png", dpi=150)
+plt.savefig(out_path+"/random_similarity_distribution.png", dpi=150)
 plt.close()
 
 print(f"Random mean similarity: {rand_sim_values.mean():.3f}")
@@ -82,41 +87,45 @@ print(f"Random min similarity: {rand_sim_values.min():.3f}")
 print(f"Random max similarity: {rand_sim_values.max():.3f}")
 
 #%%
-print("Plotting clusters vs threshold...")
-plot_clusters_vs_threshold(E, thresholds,
-                           out_path + "/clusters_vs_threshold.png")
+print("Plotting clusters vs threshold (reusing cached sims)...")
+plot_clusters_vs_threshold(E, thresholds, out_path+"/clusters_vs_threshold.png", precomputed_sims=sims)
 
 #%%
-print("Plotting silhouette vs threshold...")
-plot_silhouette_vs_threshold(E, thresholds,
-                             out_path + "/silhouette_vs_threshold.png")
+print("Plotting silhouette vs threshold (reusing cached sims)...")
+plot_silhouette_vs_threshold(E, thresholds, out_path+"/silhouette_vs_threshold.png", precomputed_sims=sims)
 # %%
+len(sentences)
 #%% Generate clusterings for candidate thresholds - EXAMPLE
 print("Generating both clusterings...")
 thresholds_to_compare = [0.8, 0.85]
 
 for t in thresholds_to_compare:
     print(f"Threshold: {t}")
-
+    
     labels = cluster_by_cosine_threshold(E, t)
     n_clusters = len(set(labels))
-
+    
     print(f"Number of clusters: {n_clusters}")
-
+    
     # Show representative sentences
     from collections import defaultdict
     clusters_dict = defaultdict(list)
     for i, label in enumerate(labels):
         clusters_dict[label].append(sentences[i])
-
+    
     for cluster_id in sorted(clusters_dict.keys()):
         sents = clusters_dict[cluster_id]
         print(f"\nCluster {cluster_id} ({len(sents)} sentences):")
         for sent in sents:
             print(f"  {sent}")
 # %%
-# EXAMPLE - create and export clusters to json
-threshold = 0.8
-cluster_sentences(rollouts_path, "sentence-transformers/all-MiniLM-L6-v2",
-                  threshold, out_path + f"/clusters_{threshold}.json")
+# OPTIONAL: export clusters for multiple thresholds and plot from cached JSONs
+export_thresholds = []  # e.g., [0.75, 0.8, 0.85]
+for t in export_thresholds:
+    print(f"Exporting clusters JSON for threshold {t}...")
+    cluster_sentences(rollouts_path, "sentence-transformers/paraphrase-mpnet-base-v2", t, out_path+f"/clusters_{t}.json")
+
+if export_thresholds:
+    print("Plotting clusters vs threshold from cached JSONs...")
+    plot_sentence_clusters_vs_threshold_from_json(out_path, out_path+"/clusters_vs_threshold_cached.png")
 # %%

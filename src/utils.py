@@ -21,21 +21,30 @@ def load_responses_from_folder(responses_folder: str) -> List[Dict[str, Any]]:
     pattern = os.path.join(responses_folder, "*.json")
 
     for file_path in sorted(glob.glob(pattern)):
-        try:
-            response_data = load_json(file_path)
-            if isinstance(response_data, dict):
-                responses.append(response_data)
-        except Exception as e:
-            print(f"Warning: Could not load {file_path}: {e}")
-
+        response_data = load_json(file_path)
+        if isinstance(response_data, dict):
+            responses.append(response_data)
+    
     return responses
 
 
-def load_responses_as_rollouts_fields(
-        responses_folder: str) -> Dict[str, List[Any]]:
-    """Convert responses folder to rollouts fields format for backward compatibility."""
-    responses = load_responses_from_folder(responses_folder)
+def load_responses_from_composite(responses_file: str) -> List[Dict[str, Any]]:
+    """Load responses from a single composite JSON file (list of dicts)."""
+    data = load_json(responses_file)
+    if isinstance(data, list):
+        return [item for item in data if isinstance(item, dict)]
+    return []
 
+
+def load_responses_as_rollouts_fields(responses_folder: str) -> Dict[str, List[Any]]:
+    """Convert responses at path (folder or composite file) to rollouts fields format."""
+    if os.path.isdir(responses_folder):
+        responses = load_responses_from_folder(responses_folder)
+    elif os.path.isfile(responses_folder):
+        responses = load_responses_from_composite(responses_folder)
+    else:
+        responses = []
+    
     # Initialize fields
     fields = {
         "cot": [],
@@ -44,15 +53,29 @@ def load_responses_as_rollouts_fields(
         "index": [],
         "seed": []
     }
+    
+    # Sort responses by best-available index to maintain order
+    def _sort_key(x: Dict[str, Any]) -> Any:
+        if "processed_index" in x:
+            return x.get("processed_index", 0)
+        if "index" in x:
+            return x.get("index", 0)
+        return x.get("response_index", 0)
 
-    # Sort responses by index to maintain order
-    responses.sort(key=lambda x: x.get("index", 0))
+    responses.sort(key=_sort_key)
 
     for response in responses:
         fields["cot"].append(response.get("cot_content", ""))
-        fields["response_content"].append(response.get("response_content", ""))
+        fields["response_content"].append(
+            response.get("processed_response_content", response.get("response_content", ""))
+        )
         fields["sentences"].append(response.get("sentences", []))
-        fields["index"].append(response.get("index", 0))
+        fields["index"].append(
+            response.get(
+                "processed_index",
+                response.get("index", response.get("response_index", 0)),
+            )
+        )
         fields["seed"].append(response.get("seed", 0))
 
     return fields

@@ -5,14 +5,18 @@ from typing import Any, Dict, List, Tuple, Set
 
 import matplotlib.pyplot as plt
 import numpy as np
-from .utils import load_responses_as_rollouts_fields, extract_sentences
+from .utils import load_responses_as_rollouts_fields, extract_sentences, load_clusters_json
 
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics import silhouette_score
+from joblib import Parallel, delayed
+from scipy.sparse import csr_matrix
+from scipy.sparse.csgraph import connected_components
 
 
 def gather_cot_sentences(
-    rollouts_path: str, ) -> Tuple[List[str], Dict[int, Set[int]]]:
+    rollouts_path: str,
+) -> Tuple[List[str], Dict[int, Set[int]]]:
     """Return (sentences, sentence_index_to_rollout_ids) for all responses.
 
     sentence_index_to_rollout_ids maps sentence index (in the returned sentences list)
@@ -33,24 +37,18 @@ def gather_cot_sentences(
     return sentences, sentence_index_to_rollout_ids
 
 
-def load_embedder(
-    model_name: str = "sentence-transformers/all-MiniLM-L6-v2"
-) -> SentenceTransformer:
+def load_embedder(model_name: str = "sentence-transformers/all-MiniLM-L6-v2") -> SentenceTransformer:
     """Load a sentence-transformers model."""
     return SentenceTransformer(model_name)
 
 
-def embed_sentences(embedder: SentenceTransformer,
-                    sentences: List[str]) -> np.ndarray:
+def embed_sentences(embedder: SentenceTransformer, sentences: List[str]) -> np.ndarray:
     """Compute embeddings for sentences as a float32 array of shape (n, d)."""
-    embeddings = embedder.encode(sentences,
-                                 convert_to_numpy=True,
-                                 normalize_embeddings=True)
+    embeddings = embedder.encode(sentences, convert_to_numpy=True, normalize_embeddings=True)
     return embeddings.astype(np.float32)
 
 
-def cluster_by_cosine_threshold(embeddings: np.ndarray,
-                                threshold: float) -> List[int]:
+def cluster_by_cosine_threshold(embeddings: np.ndarray, threshold: float, precomputed_sims: np.ndarray = None) -> List[int]:
     """Cluster by connecting pairs with cosine similarity >= threshold; return labels."""
     num_items = embeddings.shape[0]
     if num_items == 0:
@@ -58,8 +56,7 @@ def cluster_by_cosine_threshold(embeddings: np.ndarray,
     if num_items == 1:
         return [0]
 
-    # Cosine similarities via dot product (embeddings are normalized)
-    sims = embeddings @ embeddings.T
+    sims = precomputed_sims if precomputed_sims is not None else embeddings @ embeddings.T
 
     # Build adjacency list
     adjacency: List[List[int]] = [[] for _ in range(num_items)]
@@ -87,18 +84,44 @@ def cluster_by_cosine_threshold(embeddings: np.ndarray,
     return labels
 
 
+def cluster_by_cosine_threshold_from_sims(sims: np.ndarray, threshold: float) -> List[int]:
+    """Cluster using a precomputed cosine similarity matrix and SciPy connected components."""
+    n = sims.shape[0]
+    if n == 0:
+        return []
+    if n == 1:
+        return [0]
+    mask = sims >= threshold
+    np.fill_diagonal(mask, True)
+    graph = csr_matrix(mask.astype(np.uint8))
+    n_components, labels = connected_components(csgraph=graph, directed=False, return_labels=True)
+    return labels.tolist()
+
+
 def plot_clusters_vs_threshold(
     embeddings: np.ndarray,
     thresholds: List[float],
     out_path: str,
+    n_jobs: int = -1,
+    precomputed_sims: np.ndarray = None,
 ) -> None:
     """Plot number of clusters vs cosine similarity threshold and save to path."""
-    x_vals: List[float] = []
-    y_vals: List[int] = []
-    for t in thresholds:
-        labels = cluster_by_cosine_threshold(embeddings, t)
-        x_vals.append(t)
-        y_vals.append(len(set(labels)))
+    if embeddings.shape[0] == 0:
+        plt.figure(figsize=(6, 4))
+        plt.savefig(out_path, dpi=150)
+        plt.close()
+        return
+
+    sims = precomputed_sims if precomputed_sims is not None else embeddings @ embeddings.T
+
+    def _num_clusters_for_threshold(t: float) -> Tuple[float, int]:
+        labels = cluster_by_cosine_threshold_from_sims(sims, t)
+        return t, len(set(labels))
+
+    results = Parallel(n_jobs=n_jobs, prefer="threads")(delayed(_num_clusters_for_threshold)(t) for t in thresholds)
+    results.sort(key=lambda x: x[0])
+    x_vals = [t for t, _ in results]
+    y_vals = [k for _, k in results]
 
     plt.figure(figsize=(6, 4))
     plt.plot(x_vals, y_vals, marker="o")
@@ -115,6 +138,8 @@ def plot_silhouette_vs_threshold(
     embeddings: np.ndarray,
     thresholds: List[float],
     out_path: str,
+    n_jobs: int = -1,
+    precomputed_sims: np.ndarray = None,
 ) -> None:
     """Plot silhouette score vs cosine similarity threshold and save to path.
     
@@ -123,21 +148,27 @@ def plot_silhouette_vs_threshold(
     if embeddings.shape[0] < 2:
         return
 
-    x_vals: List[float] = []
-    y_vals: List[float] = []
+    sims = precomputed_sims if precomputed_sims is not None else embeddings @ embeddings.T
+    distances = 1.0 - sims
+    np.fill_diagonal(distances, 0.0)
 
-    for t in thresholds:
-        labels = cluster_by_cosine_threshold(embeddings, t)
+    def _silhouette_for_threshold(t: float) -> Tuple[float, float]:
+        labels = cluster_by_cosine_threshold_from_sims(sims, t)
         num_clusters = len(set(labels))
         if num_clusters < 2 or num_clusters >= embeddings.shape[0]:
-            continue
-        score = silhouette_score(embeddings, labels, metric="cosine")
-        x_vals.append(t)
-        y_vals.append(score)
+            return (t, np.nan)
+        score = silhouette_score(distances, labels, metric="precomputed")
+        return (t, float(score))
+
+    results = Parallel(n_jobs=n_jobs, prefer="threads")(delayed(_silhouette_for_threshold)(t) for t in thresholds)
+    results = [(t, s) for (t, s) in results if not np.isnan(s)]
+    results.sort(key=lambda x: x[0])
+    x_vals = [t for t, _ in results]
+    y_vals = [s for _, s in results]
 
     plt.figure(figsize=(6, 4))
     plt.plot(x_vals, y_vals, marker="o")
-    plt.xlabel("Cosine similarity threshold")
+    plt.xlabel("Cosine similarity threshold") 
     plt.ylabel("Silhouette score")
     plt.title("Silhouette Score vs Cosine Threshold")
     plt.grid(True, alpha=0.3)
@@ -146,8 +177,51 @@ def plot_silhouette_vs_threshold(
     plt.close()
 
 
-def compute_cluster_centroid(embeddings: np.ndarray,
-                             member_indices: List[int]) -> np.ndarray:
+def load_sentence_cluster_counts_from_json(clusters_dir: str) -> Dict[float, int]:
+    """Load number of clusters per threshold from saved sentence clusters_*.json files."""
+    import os
+    import glob
+
+    pattern = os.path.join(clusters_dir, "clusters_*.json")
+    files = glob.glob(pattern)
+    threshold_to_count: Dict[float, int] = {}
+    for file_path in files:
+        filename = os.path.basename(file_path)
+        # Expect filename like clusters_{threshold}.json
+        parts = filename.replace(".json", "").split("_")
+        if len(parts) >= 2:
+            t_str = parts[-1]
+            try:
+                t_val = float(t_str)
+            except ValueError:
+                continue
+            clusters = load_clusters_json(file_path)
+            threshold_to_count[t_val] = len(clusters)
+    return threshold_to_count
+
+
+def plot_sentence_clusters_vs_threshold_from_json(
+    clusters_dir: str,
+    out_path: str,
+) -> None:
+    """Plot number of clusters vs threshold by reading saved sentence cluster JSONs."""
+    counts = load_sentence_cluster_counts_from_json(clusters_dir)
+    if not counts:
+        return
+    thresholds = sorted(counts.keys())
+    num_clusters = [counts[t] for t in thresholds]
+    plt.figure(figsize=(6, 4))
+    plt.plot(thresholds, num_clusters, marker="o")
+    plt.xlabel("Cosine similarity threshold")
+    plt.ylabel("Number of clusters")
+    plt.title("Sentence Clusters vs Cosine Threshold (cached)")
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.savefig(out_path, dpi=150)
+    plt.close()
+
+
+def compute_cluster_centroid(embeddings: np.ndarray, member_indices: List[int]) -> np.ndarray:
     """Compute centroid as mean of member embeddings and L2-normalize it."""
     centroid = embeddings[member_indices].mean(axis=0)
     norm = np.linalg.norm(centroid)
@@ -187,17 +261,14 @@ def export_clusters_to_json(
     clusters_output: List[Dict[str, Any]] = []
     for cluster_id, member_indices in sorted(cluster_id_to_members.items()):
         centroid = compute_cluster_centroid(embeddings, member_indices)
-        rep_idx, rep_sentence = select_representative_sentence(
-            embeddings, member_indices, centroid, sentences)
+        rep_idx, rep_sentence = select_representative_sentence(embeddings, member_indices, centroid, sentences)
 
         # Keep duplicates in order (multiplicity preserved)
         sentences_list: List[Dict[str, Any]] = []
         for s_idx in member_indices:
             sentences_list.append({
-                "text":
-                sentences[s_idx],
-                "rollout_ids":
-                sorted(list(sentence_index_to_rollout_ids.get(s_idx, set()))),
+                "text": sentences[s_idx],
+                "rollout_ids": sorted(list(sentence_index_to_rollout_ids.get(s_idx, set()))),
             })
 
         # Also aggregate identical texts to report multiplicity
@@ -207,17 +278,13 @@ def export_clusters_to_json(
             if txt not in agg:
                 agg[txt] = {"count": 0, "rollout_ids": set()}
             agg[txt]["count"] += 1
-            agg[txt]["rollout_ids"].update(
-                sentence_index_to_rollout_ids.get(s_idx, set()))
+            agg[txt]["rollout_ids"].update(sentence_index_to_rollout_ids.get(s_idx, set()))
         unique_sentences: List[Dict[str, Any]] = []
         for txt, payload in agg.items():
             unique_sentences.append({
-                "text":
-                txt,
-                "count":
-                int(payload["count"]),
-                "rollout_ids":
-                sorted(list(payload["rollout_ids"]))
+                "text": txt,
+                "count": int(payload["count"]),
+                "rollout_ids": sorted(list(payload["rollout_ids"]))
             })
         # Stable sort by descending count then text
         unique_sentences.sort(key=lambda d: (-d["count"], d["text"]))
@@ -232,10 +299,7 @@ def export_clusters_to_json(
         })
 
     with open(out_path, "w", encoding="utf-8") as f:
-        json.dump({"clusters": clusters_output},
-                  f,
-                  ensure_ascii=False,
-                  indent=2)
+        json.dump({"clusters": clusters_output}, f, ensure_ascii=False, indent=2)
 
 
 def cluster_sentences(
@@ -249,5 +313,6 @@ def cluster_sentences(
     embedder = load_embedder(embed_model)
     embeddings = embed_sentences(embedder, sentences)
     labels = cluster_by_cosine_threshold(embeddings, threshold)
-    export_clusters_to_json(out_json_path, labels, embeddings, sentences,
-                            sent_idx_to_rollout_ids)
+    export_clusters_to_json(out_json_path, labels, embeddings, sentences, sent_idx_to_rollout_ids)
+
+
