@@ -87,10 +87,20 @@
 
         .visualization-area {
             flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             padding: 1.5rem;
+            overflow: auto;
+            max-height: calc(100vh - 80px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .visualization-container {
+            flex: 1;
+            overflow: auto;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 2rem;
         }
 
         .sidebar {
@@ -106,6 +116,23 @@
             font-weight: 600;
             margin-bottom: 1.5rem;
             color: #111827;
+        }
+
+        .rollout-slider-container {
+            margin-bottom: 1.5rem;
+        }
+
+        .rollout-slider {
+            width: 100%;
+            margin: 0.5rem 0;
+        }
+
+        .rollout-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-top: 0.5rem;
         }
 
         .rollout-option {
@@ -124,13 +151,6 @@
             align-items: center;
             cursor: pointer;
             font-weight: 500;
-        }
-
-        .rollout-stats {
-            margin-top: 0.5rem;
-            margin-left: 1.5rem;
-            font-size: 0.875rem;
-            color: #6b7280;
         }
 
         .stats-box {
@@ -216,35 +236,25 @@
             border: 1px solid #e5e7eb;
             border-radius: 0.5rem;
             background: white;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
 
         .node circle {
             cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .node circle:hover {
-            stroke-width: 3px;
         }
 
         .node text {
-            font-size: 12px;
-            font-weight: bold;
+            font-size: 10px;
+            font-weight: 600;
             fill: white;
             text-anchor: middle;
             pointer-events: none;
         }
 
         .edge {
-            stroke: #666;
-            stroke-opacity: 0.6;
+            stroke: #000000;
+            stroke-opacity: 0.7;
             marker-end: url(#arrowhead);
-        }
-
-        .edge:hover {
-            stroke-opacity: 1;
-            stroke-width: 3px;
         }
 
         /* Modal styles */
@@ -428,7 +438,30 @@
 
     <script>
         let currentData = null;
-        let selectedRolloutId = null;
+        let selectedRolloutIds = []; // Array to store multiple selected rollouts
+
+        function showEmptyMessage() {
+            const svg = d3.select('#flowchart-svg')
+                .attr('width', 800)
+                .attr('height', 400);
+            svg.selectAll("*").remove();
+
+            svg.append("text")
+                .attr("x", 400)
+                .attr("y", 200)
+                .attr("text-anchor", "middle")
+                .attr("font-size", "18px")
+                .attr("fill", "#6b7280")
+                .text("Select rollouts to see the visualization");
+
+            // Hide loading indicator
+            setTimeout(() => {
+                const loadingIndicator = document.getElementById('loading-indicator');
+                if (loadingIndicator) {
+                    loadingIndicator.style.display = 'none';
+                }
+            }, 100);
+        }
 
         // File selection handler
         document.getElementById('fileSelect').addEventListener('change', async function (e) {
@@ -485,150 +518,239 @@
 
         function renderVisualization(data) {
             const container = document.getElementById('visualizationArea');
-            container.innerHTML = '<svg id="flowchart-svg" width="800" height="600"></svg>';
+            container.innerHTML = `
+                <div class="visualization-container">
+                    <div id="loading-indicator" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; background: rgba(255,255,255,0.9); padding: 2rem; border-radius: 0.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                        <div style="text-align: center;">
+                            <div class="spinner" style="margin: 0 auto 1rem;"></div>
+                            <div>Rendering visualization...</div>
+                            <div style="font-size: 0.875rem; color: #6b7280; margin-top: 0.5rem;">
+                                Nodes: ${data.nodes.length} | Rollouts: ${data.rollouts ? (Array.isArray(data.rollouts) ? data.rollouts.length : Object.keys(data.rollouts).length) : 0}
+                            </div>
+                        </div>
+                    </div>
+                    <svg id="flowchart-svg"></svg>
+                </div>
+            `;
 
-            const svg = d3.select('#flowchart-svg');
-            const width = 800;
-            const height = 600;
-            const margin = { top: 50, right: 50, bottom: 50, left: 50 };
+            // CRITICAL: Limit data size for performance
+            const MAX_NODES = 500;
+            const MAX_EDGES = 1000;
+            const MAX_ROLLOUTS = 100;
+
+            // Only proceed if rollouts are selected
+            if (selectedRolloutIds.length === 0) {
+                showEmptyMessage();
+                return;
+            }
+
+            // Limit selected rollouts for performance
+            const limitedRolloutIds = selectedRolloutIds.slice(0, MAX_ROLLOUTS);
+            if (selectedRolloutIds.length > MAX_ROLLOUTS) {
+                console.warn(`Limited to first ${MAX_ROLLOUTS} rollouts for performance`);
+            }
+
+            // Calculate dynamic dimensions
+            const nodeSpacing = 40;
+            const layerSpacing = 80;
+            const nodeRadius = 12;
+
+            // Each node gets its own layer (different Y position)
+            const svgWidth = Math.max(800, 600);
+            const svgHeight = Math.max(400, relevantNodeIds.length * layerSpacing + 200);
+
+            const svg = d3.select('#flowchart-svg')
+                .attr('width', svgWidth)
+                .attr('height', svgHeight)
+                .call(d3.zoom().on("zoom", function (event) {
+                    g.attr("transform", event.transform);
+                }));
 
             // Clear previous content
             svg.selectAll("*").remove();
 
-            // Create main group
+            const margin = { top: 50, right: 50, bottom: 50, left: 150 };
             const g = svg.append("g")
                 .attr("transform", `translate(${margin.left},${margin.top})`);
 
-            // Calculate node positions
+            // Calculate node positions - each node in its own layer
             const nodePositions = new Map();
-            const nodes = data.nodes;
+            const availableWidth = svgWidth - margin.left - margin.right;
 
-            // If no edges, use grid layout
-            if (!data.edges || data.edges.length === 0) {
-                const cols = Math.ceil(Math.sqrt(nodes.length));
-                const nodeWidth = (width - margin.left - margin.right) / cols;
-                const nodeHeight = 80;
-
-                nodes.forEach((node, index) => {
-                    const row = Math.floor(index / cols);
-                    const col = index % cols;
-                    nodePositions.set(node.cluster_id, {
-                        x: col * nodeWidth + nodeWidth / 2,
-                        y: row * nodeHeight + nodeHeight / 2 + 50
-                    });
-                });
-            } else {
-                // Hierarchical layout for files with edges
-                // Simplified version - arrange in layers
-                const layerHeight = (height - margin.top - margin.bottom) / 3;
-                const nodesPerLayer = Math.ceil(nodes.length / 3);
-
-                nodes.forEach((node, index) => {
-                    const layer = Math.floor(index / nodesPerLayer);
-                    const positionInLayer = index % nodesPerLayer;
-                    const layerWidth = width - margin.left - margin.right;
-                    const spacing = layerWidth / Math.max(nodesPerLayer, 1);
-
-                    nodePositions.set(node.cluster_id, {
-                        x: positionInLayer * spacing + spacing / 2,
-                        y: layer * layerHeight + layerHeight / 2
-                    });
-                });
-            }
-
-            // Filter edges based on selected rollout
-            let edgesToShow = data.edges || [];
-            if (selectedRolloutId !== null) {
-                const selectedRollout = data.rollouts.find(r =>
-                    (r.rollout_id || r.index) === selectedRolloutId
-                );
-                if (selectedRollout) {
-                    edgesToShow = selectedRollout.edges;
-                }
-            }
-
-            // Create edges
-            if (edgesToShow.length > 0) {
-                const edgeGroup = g.append("g").attr("class", "edges");
-
-                edgesToShow.forEach(edge => {
-                    const sourceId = (edge.from_cluster || edge.node_a || '').toString();
-                    const targetId = (edge.to_cluster || edge.node_b || '').toString();
-                    const sourcePos = nodePositions.get(sourceId);
-                    const targetPos = nodePositions.get(targetId);
-
-                    if (sourcePos && targetPos) {
-                        const edgeWidth = Math.max(1, Math.min(4, (edge.freq || 1) / 50));
-                        const opacity = selectedRolloutId !== null ? 1 : Math.min(1, (edge.freq || 1) / 100);
-
-                        edgeGroup.append("line")
-                            .attr("x1", sourcePos.x)
-                            .attr("y1", sourcePos.y)
-                            .attr("x2", targetPos.x)
-                            .attr("y2", targetPos.y)
-                            .attr("class", "edge")
-                            .attr("stroke-width", edgeWidth)
-                            .attr("opacity", opacity);
-                    }
-                });
-
-                // Add arrow markers
-                const defs = svg.append("defs");
-                defs.append("marker")
-                    .attr("id", "arrowhead")
-                    .attr("viewBox", "0 -5 10 10")
-                    .attr("refX", 8)
-                    .attr("refY", 0)
-                    .attr("markerWidth", 6)
-                    .attr("markerHeight", 6)
-                    .attr("orient", "auto")
-                    .append("path")
-                    .attr("d", "M0,-5L10,0L0,5")
-                    .attr("fill", "#666");
-            }
-
-            // Create nodes
-            const nodeGroup = g.append("g").attr("class", "nodes");
-
-            nodes.forEach(node => {
-                const pos = nodePositions.get(node.cluster_id);
-                if (!pos) return;
-
-                const nodeElement = nodeGroup.append("g")
-                    .attr("class", "node")
-                    .attr("transform", `translate(${pos.x}, ${pos.y})`);
-
-                // Node circle
-                const radius = Math.max(20, Math.min(40, Math.sqrt(node.freq) / 3));
-                nodeElement.append("circle")
-                    .attr("r", radius)
-                    .attr("fill", "#4f46e5")
-                    .attr("stroke", "#312e81")
-                    .attr("stroke-width", 2);
-
-                // Node text
-                nodeElement.append("text")
-                    .attr("dy", "0.35em")
-                    .text(node.cluster_id);
-
-                // Click handler
-                nodeElement.on("click", () => {
-                    showNodeModal(node);
-                });
-
-                // Hover effects
-                nodeElement.on("mouseover", function () {
-                    d3.select(this).select("circle")
-                        .attr("fill", "#6366f1")
-                        .attr("r", radius + 2);
-                });
-
-                nodeElement.on("mouseout", function () {
-                    d3.select(this).select("circle")
-                        .attr("fill", "#4f46e5")
-                        .attr("r", radius);
+            relevantNodeIds.forEach((nodeId, index) => {
+                nodePositions.set(nodeId, {
+                    x: availableWidth / 2, // Center each node horizontally
+                    y: index * layerSpacing
                 });
             });
+
+            // Create fast lookup map for rollouts
+            const rolloutMap = new Map();
+
+            // Handle both old format (array of objects) and new format (object with string keys)
+            if (Array.isArray(data.rollouts)) {
+                // Old format: [{"index": "1", "edges": [...]}, ...]
+                data.rollouts.forEach(rollout => {
+                    const id = rollout.rollout_id || rollout.index;
+                    rolloutMap.set(id.toString(), rollout);
+                });
+            } else {
+                // New format: {"1": [...], "2": [...], ...} - keys are strings
+                Object.entries(data.rollouts).forEach(([key, edges]) => {
+                    rolloutMap.set(key, { edges: edges });
+                });
+            }
+
+            // Get edges to show from selected rollouts only
+            let edgesToShow = [];
+            let relevantNodes = new Set();
+
+            if (limitedRolloutIds.length > 0) {
+                // Show edges only from selected rollouts (fast lookup with limits)
+                limitedRolloutIds.forEach(rolloutId => {
+                    const rollout = rolloutMap.get(rolloutId.toString());
+                    if (rollout && rollout.edges) {
+                        // Limit edges per rollout for performance
+                        const limitedEdges = rollout.edges.slice(0, Math.ceil(MAX_EDGES / limitedRolloutIds.length));
+                        edgesToShow = edgesToShow.concat(limitedEdges);
+
+                        // Track which nodes are involved
+                        limitedEdges.forEach(edge => {
+                            const sourceId = (edge.from_cluster !== undefined ? edge.from_cluster : edge.node_a || '').toString();
+                            const targetId = (edge.to_cluster !== undefined ? edge.to_cluster : edge.node_b || '').toString();
+                            relevantNodes.add(sourceId);
+                            relevantNodes.add(targetId);
+                        });
+                    }
+                });
+            }
+
+            // Limit total nodes for performance
+            const relevantNodeIds = Array.from(relevantNodes).slice(0, MAX_NODES);
+            if (relevantNodes.size > MAX_NODES) {
+                console.warn(`Limited to first ${MAX_NODES} nodes for performance`);
+            }
+
+            // Add arrow markers
+            const defs = svg.append("defs");
+            defs.append("marker")
+                .attr("id", "arrowhead")
+                .attr("viewBox", "0 -5 10 10")
+                .attr("refX", 12)
+                .attr("refY", 0)
+                .attr("markerWidth", 6)
+                .attr("markerHeight", 6)
+                .attr("orient", "auto")
+                .append("path")
+                .attr("d", "M0,-5L10,0L0,5")
+                .attr("fill", "#000000");
+
+            // Create edges with consistent opacity but varying thickness
+            const edgeGroup = g.append("g").attr("class", "edges");
+
+            // Group edges by path to calculate thickness (optimized)
+            const edgePaths = new Map();
+            const validEdges = [];
+
+            edgesToShow.forEach(edge => {
+                const sourceId = (edge.from_cluster !== undefined ? edge.from_cluster : edge.node_a || '').toString();
+                const targetId = (edge.to_cluster !== undefined ? edge.to_cluster : edge.node_b || '').toString();
+                const sourcePos = nodePositions.get(sourceId);
+                const targetPos = nodePositions.get(targetId);
+
+                if (sourcePos && targetPos) {
+                    const pathKey = `${sourceId}-${targetId}`;
+                    edgePaths.set(pathKey, (edgePaths.get(pathKey) || 0) + 1);
+                    validEdges.push({
+                        sourcePos,
+                        targetPos,
+                        pathKey
+                    });
+                }
+            });
+
+            // Batch create edges for better performance
+            const edgeData = validEdges.map(edge => {
+                const pathCount = edgePaths.get(edge.pathKey) || 1;
+                const edgeWidth = Math.max(1, Math.min(3, pathCount / 2));
+                return {
+                    x1: edge.sourcePos.x,
+                    y1: edge.sourcePos.y,
+                    x2: edge.targetPos.x,
+                    y2: edge.targetPos.y,
+                    width: edgeWidth
+                };
+            });
+
+            edgeGroup.selectAll("line")
+                .data(edgeData)
+                .enter()
+                .append("line")
+                .attr("class", "edge")
+                .attr("stroke", "#000000")
+                .attr("stroke-width", d => d.width)
+                .attr("opacity", 0.7)
+                .attr("marker-end", "url(#arrowhead)")
+                .attr("x1", d => d.x1)
+                .attr("y1", d => d.y1)
+                .attr("x2", d => d.x2)
+                .attr("y2", d => d.y2);
+
+            // Create nodes with consistent sizing
+            const nodeGroup = g.append("g").attr("class", "nodes");
+
+            // Only show nodes that are relevant to selected rollouts
+            const nodeData = nodes.map(node => {
+                const pos = nodePositions.get(node.cluster_id);
+                return pos ? { ...node, x: pos.x, y: pos.y } : null;
+            }).filter(d => d !== null);
+
+            const nodeElements = nodeGroup.selectAll("g.node")
+                .data(nodeData)
+                .enter()
+                .append("g")
+                .attr("class", "node")
+                .attr("transform", d => `translate(${d.x}, ${d.y})`);
+
+            // Add circles
+            nodeElements.append("circle")
+                .attr("r", nodeRadius)
+                .attr("fill", "#3b82f6")
+                .attr("stroke", "#1e40af")
+                .attr("stroke-width", 2);
+
+            // Add text
+            nodeElements.append("text")
+                .attr("dy", "0.35em")
+                .attr("font-size", "10px")
+                .attr("font-weight", "600")
+                .attr("fill", "white")
+                .text(d => d.cluster_id);
+
+            // Simplified click handler (removed expensive hover effects)
+            nodeElements.on("click", function (event, d) {
+                showNodeModal(d);
+            });
+
+            // Add node labels on the left
+            relevantNodeIds.forEach((nodeId, index) => {
+                g.append("text")
+                    .attr("x", -20)
+                    .attr("y", index * layerSpacing)
+                    .attr("text-anchor", "end")
+                    .attr("dy", "0.35em")
+                    .attr("font-size", "12px")
+                    .attr("fill", "#6b7280")
+                    .text(`Node ${nodeId}`);
+            });
+
+            // Hide loading indicator after rendering
+            setTimeout(() => {
+                const loadingIndicator = document.getElementById('loading-indicator');
+                if (loadingIndicator) {
+                    loadingIndicator.style.display = 'none';
+                }
+            }, 100);
         }
 
         function updateSidebar(data) {
@@ -649,43 +771,37 @@
                     </div>
                 `;
             } else {
+                const maxRollout = data.rollouts.length - 1;
                 content.innerHTML = `
-                    <div style="margin-bottom: 1.5rem;">
-                        <label style="display: flex; align-items: center; cursor: pointer;">
-                            <input type="radio" name="rollout" value="" ${selectedRolloutId === null ? 'checked' : ''} 
-                                   onchange="selectRollout(null)" style="margin-right: 0.75rem;">
-                            <span style="font-weight: 500;">Show All Edges</span>
-                        </label>
-                        <p style="font-size: 0.875rem; color: #6b7280; margin-left: 1.5rem; margin-top: 0.25rem;">
-                            Display all edges with opacity based on frequency
-                        </p>
-                    </div>
-                    <div style="margin-bottom: 1.5rem;">
-                        <h3 style="font-size: 1.125rem; font-weight: 500; margin-bottom: 1rem;">Individual Rollouts</h3>
-                        ${data.rollouts.map((rollout, index) => {
-                    const rolloutId = rollout.rollout_id || rollout.index || index;
-                    return `
-                                <div class="rollout-option">
-                                    <label>
-                                        <input type="radio" name="rollout" value="${rolloutId}" 
-                                               ${selectedRolloutId === rolloutId ? 'checked' : ''} 
-                                               onchange="selectRollout(${rolloutId})">
-                                        Rollout ${rolloutId}
-                                    </label>
-                                    <div class="rollout-stats">
-                                        <p>Edges: ${rollout.edges.length}</p>
-                                        <p>Steps: ${rollout.edges.length}</p>
-                                    </div>
-                                </div>
-                            `;
-                }).join('')}
+                    <div class="rollout-selection-container">
+                        <h3 style="font-size: 1.125rem; font-weight: 500; margin-bottom: 1rem;">Rollout Selection</h3>
+                        <div style="margin-bottom: 1rem;">
+                            <label style="display: block; font-size: 0.875rem; color: #374151; margin-bottom: 0.5rem;">
+                                Enter rollout IDs (e.g., "3-10, 8, 9, 11" or "2-20"):
+                            </label>
+                            <input type="text" id="rolloutInput" placeholder="e.g., 3-10, 8, 9, 11" 
+                                   style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-family: monospace;"
+                                   oninput="parseRolloutSelection(this.value)">
+                        </div>
+                        <div class="rollout-info">
+                            <span>Selected: <span id="selectedRollouts">None</span></span>
+                            <span style="margin-left: 1rem;">Total: ${data.rollouts.length}</span>
+                        </div>
+                        <div style="margin-top: 0.5rem;">
+                            <button onclick="selectAllRollouts()" style="padding: 0.25rem 0.5rem; margin-right: 0.5rem; font-size: 0.875rem; background: #3b82f6; color: white; border: none; border-radius: 0.25rem; cursor: pointer;">
+                                Select All
+                            </button>
+                            <button onclick="clearRolloutSelection()" style="padding: 0.25rem 0.5rem; font-size: 0.875rem; background: #6b7280; color: white; border: none; border-radius: 0.25rem; cursor: pointer;">
+                                Clear
+                            </button>
+                        </div>
                     </div>
                     <div class="stats-box">
                         <h4>Statistics</h4>
-                        <p>Total Rollouts: ${data.rollouts.length}</p>
+                        <p>Total Rollouts: ${Array.isArray(data.rollouts) ? data.rollouts.length : Object.keys(data.rollouts).length}</p>
                         <p>Total Nodes: ${data.nodes.length}</p>
                         <p>Total Edges: ${data.edges ? data.edges.length : 0}</p>
-                        ${selectedRolloutId !== null ? `<p style="color: #3b82f6; font-weight: 500;">Selected: ${selectedRolloutId}</p>` : ''}
+                        ${selectedRolloutIds.length > 0 ? `<p style="color: #3b82f6; font-weight: 500;">Showing ${selectedRolloutIds.length} rollouts</p>` : '<p style="color: #6b7280;">No rollouts selected</p>'}
                     </div>
                 `;
             }
@@ -693,12 +809,77 @@
             sidebar.style.display = 'block';
         }
 
-        function selectRollout(rolloutId) {
-            selectedRolloutId = rolloutId;
+        function parseRolloutSelection(input) {
+            if (!input.trim()) {
+                selectedRolloutIds = [];
+                updateRolloutDisplay();
+                if (currentData) {
+                    renderVisualization(currentData);
+                }
+                return;
+            }
+
+            const ids = new Set();
+            const parts = input.split(',');
+
+            parts.forEach(part => {
+                part = part.trim();
+                if (part.includes('-')) {
+                    // Handle ranges like "3-10"
+                    const [start, end] = part.split('-').map(n => parseInt(n.trim()));
+                    if (!isNaN(start) && !isNaN(end)) {
+                        for (let i = Math.min(start, end); i <= Math.max(start, end); i++) {
+                            ids.add(i);
+                        }
+                    }
+                } else {
+                    // Handle single numbers
+                    const num = parseInt(part);
+                    if (!isNaN(num)) {
+                        ids.add(num);
+                    }
+                }
+            });
+
+            selectedRolloutIds = Array.from(ids).sort((a, b) => a - b);
+            updateRolloutDisplay();
+
             if (currentData) {
                 renderVisualization(currentData);
-                updateSidebar(currentData);
             }
+        }
+
+        function updateRolloutDisplay() {
+            const displayElement = document.getElementById('selectedRollouts');
+            if (displayElement) {
+                if (selectedRolloutIds.length === 0) {
+                    displayElement.textContent = 'None';
+                } else if (selectedRolloutIds.length <= 10) {
+                    displayElement.textContent = selectedRolloutIds.join(', ');
+                } else {
+                    displayElement.textContent = `${selectedRolloutIds.length} selected (${selectedRolloutIds.slice(0, 5).join(', ')}, ...)`;
+                }
+            }
+        }
+
+        function selectAllRollouts() {
+            if (currentData && currentData.rollouts) {
+                if (Array.isArray(currentData.rollouts)) {
+                    selectedRolloutIds = currentData.rollouts.map(r => (r.rollout_id || r.index).toString());
+                } else {
+                    selectedRolloutIds = Object.keys(currentData.rollouts);
+                }
+                document.getElementById('rolloutInput').value = 'All';
+                updateRolloutDisplay();
+                renderVisualization(currentData);
+            }
+        }
+
+        function clearRolloutSelection() {
+            selectedRolloutIds = [];
+            document.getElementById('rolloutInput').value = '';
+            updateRolloutDisplay();
+            renderVisualization(currentData);
         }
 
         function showNodeModal(node) {

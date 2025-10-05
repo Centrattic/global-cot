@@ -87,9 +87,11 @@ def api_flowchart(filename):
     return jsonify(file_data)
 
 if __name__ == '__main__':
+    ngrok.kill()
+    
     public_url = ngrok.connect(5000)
     print(f"Local server: http://localhost:5000")
     print(f"Public URL: {public_url}")
     print(f"Share this URL for public access: {public_url}")
     
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=False, host='0.0.0.0', port=5000)

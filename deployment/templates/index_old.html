@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flowchart Visualizer</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f9fafb;
+            color: #374151;
+        }
+
+        .header {
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #111827;
+        }
+
+        .file-selector {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .file-selector select {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            background: white;
+            min-width: 200px;
+        }
+
+        .file-selector select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .loading {
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            color: #6b7280;
+        }
+
+        .spinner {
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid #e5e7eb;
+            border-top: 2px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .main-content {
+            display: flex;
+            height: calc(100vh - 80px);
+        }
+
+        .visualization-area {
+            flex: 1;
+            padding: 1.5rem;
+            overflow: auto;
+            max-height: calc(100vh - 80px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .visualization-container {
+            flex: 1;
+            overflow: auto;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 2rem;
+        }
+
+        .sidebar {
+            width: 320px;
+            background: white;
+            border-left: 1px solid #e5e7eb;
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+
+        .sidebar h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: #111827;
+        }
+
+        .rollout-slider-container {
+            margin-bottom: 1.5rem;
+        }
+
+        .rollout-slider {
+            width: 100%;
+            margin: 0.5rem 0;
+        }
+
+        .rollout-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-top: 0.5rem;
+        }
+
+        .rollout-option {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .rollout-option input[type="radio"] {
+            margin-right: 0.75rem;
+        }
+
+        .rollout-option label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .stats-box {
+            background: #f9fafb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-top: 2rem;
+        }
+
+        .stats-box h4 {
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: #111827;
+        }
+
+        .stats-box p {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-bottom: 0.25rem;
+        }
+
+        .no-rollouts {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 0.5rem;
+            padding: 1rem;
+        }
+
+        .no-rollouts h3 {
+            color: #1e40af;
+            font-size: 1.125rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .no-rollouts p {
+            color: #1d4ed8;
+            font-size: 0.875rem;
+        }
+
+        .welcome-box {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 0.5rem;
+            padding: 2rem;
+            text-align: center;
+            max-width: 28rem;
+        }
+
+        .welcome-box h3 {
+            color: #1e40af;
+            font-size: 1.125rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .welcome-box p {
+            color: #1d4ed8;
+        }
+
+        .error-box {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            text-align: center;
+            max-width: 28rem;
+        }
+
+        .error-box h3 {
+            color: #dc2626;
+            font-size: 1.125rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .error-box p {
+            color: #dc2626;
+        }
+
+        #flowchart-svg {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            background: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .node circle {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .node circle:hover {
+            stroke-width: 3px;
+        }
+
+        .node text {
+            font-size: 14px;
+            font-weight: 600;
+            fill: white;
+            text-anchor: middle;
+            pointer-events: none;
+        }
+
+        .edge {
+            stroke: #6b7280;
+            stroke-opacity: 0.6;
+            marker-end: url(#arrowhead);
+        }
+
+        .edge:hover {
+            stroke-opacity: 1;
+            stroke-width: 3px;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            max-width: 48rem;
+            max-height: 80vh;
+            width: 90%;
+            overflow: hidden;
+        }
+
+        .modal-header {
+            background: #f9fafb;
+            padding: 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .modal-header h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-stats {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .modal-close {
+            float: right;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #9ca3af;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .modal-close:hover {
+            color: #6b7280;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .representative-sentence {
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 1rem;
+            border-radius: 0.375rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .sentence-item {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.375rem;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .sentence-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .sentence-count {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #6b7280;
+        }
+
+        .sentence-rollouts {
+            font-size: 0.75rem;
+            color: #9ca3af;
+        }
+
+        .sentence-text {
+            color: #374151;
+        }
+
+        .modal-footer {
+            background: #f9fafb;
+            padding: 1rem 1.5rem;
+            border-top: 1px solid #e5e7eb;
+            text-align: right;
+        }
+
+        .btn-close {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .btn-close:hover {
+            background: #2563eb;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1>Flowchart Visualizer</h1>
+        <div class="file-selector">
+            <label for="fileSelect">Select Flowchart:</label>
+            <select id="fileSelect">
+                <option value="">Choose a file...</option>
+                {% for file in files %}
+                <option value="{{ file.name }}">{{ file.name }}</option>
+                {% endfor %}
+            </select>
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <span>Loading...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Visualization Area -->
+        <div class="visualization-area" id="visualizationArea">
+            <div class="welcome-box">
+                <h3>Welcome to Flowchart Visualizer</h3>
+                <p>Select a flowchart file from the dropdown above to begin exploring the visualization.</p>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar" style="display: none;">
+            <h2>Rollout Selection</h2>
+            <div id="rolloutContent">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Node Modal -->
+    <div id="nodeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-close" onclick="closeModal()">&times;</span>
+                <h2 id="modalTitle">Cluster Details</h2>
+                <div class="modal-stats" id="modalStats"></div>
+            </div>
+            <div class="modal-body">
+                <div id="representativeSentence"></div>
+                <h3 style="margin-bottom: 1rem;">All Sentences</h3>
+                <div id="sentencesList"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-close" onclick="closeModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentData = null;
+        let selectedRolloutId = null;
+
+        // File selection handler
+        document.getElementById('fileSelect').addEventListener('change', async function (e) {
+            const filename = e.target.value;
+            if (!filename) {
+                hideVisualization();
+                return;
+            }
+
+            showLoading(true);
+            try {
+                const response = await fetch(`/api/flowchart/${filename}`);
+                const data = await response.json();
+
+                if (data.error) {
+                    showError(data.error);
+                } else {
+                    currentData = data;
+                    renderVisualization(data);
+                    updateSidebar(data);
+                }
+            } catch (error) {
+                showError('Failed to load flowchart data');
+            } finally {
+                showLoading(false);
+            }
+        });
+
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'flex' : 'none';
+        }
+
+        function hideVisualization() {
+            document.getElementById('visualizationArea').innerHTML = `
+                <div class="welcome-box">
+                    <h3>Welcome to Flowchart Visualizer</h3>
+                    <p>Select a flowchart file from the dropdown above to begin exploring the visualization.</p>
+                </div>
+            `;
+            document.getElementById('sidebar').style.display = 'none';
+            currentData = null;
+            selectedRolloutId = null;
+        }
+
+        function showError(message) {
+            document.getElementById('visualizationArea').innerHTML = `
+                <div class="error-box">
+                    <h3>Error Loading Data</h3>
+                    <p>${message}</p>
+                </div>
+            `;
+            document.getElementById('sidebar').style.display = 'none';
+        }
+
+        function renderVisualization(data) {
+            const container = document.getElementById('visualizationArea');
+            container.innerHTML = `
+                <div class="visualization-container">
+                    <svg id="flowchart-svg"></svg>
+                </div>
+            `;
+
+            const nodes = data.nodes;
+            const edges = data.edges || [];
+
+            // Calculate outgoing edges for each node
+            const outgoingEdges = new Map();
+            edges.forEach(edge => {
+                const sourceId = (edge.from_cluster || edge.node_a || '').toString();
+                const targetId = (edge.to_cluster || edge.node_b || '').toString();
+
+                if (sourceId && targetId) {
+                    outgoingEdges.set(sourceId, (outgoingEdges.get(sourceId) || 0) + 1);
+                }
+            });
+
+            // Sort nodes by outgoing edges (descending)
+            const sortedNodes = [...nodes].sort((a, b) => {
+                const aOutgoing = outgoingEdges.get(a.cluster_id) || 0;
+                const bOutgoing = outgoingEdges.get(b.cluster_id) || 0;
+                return bOutgoing - aOutgoing;
+            });
+
+            // Create 5 layers with proper distribution: 5%, 10%, 20%, 30%, 35%
+            const layers = [];
+            const layerPercentages = [0.05, 0.10, 0.20, 0.30, 0.35];
+            let currentIndex = 0;
+
+            layerPercentages.forEach((percentage, layerIndex) => {
+                const nodesInLayer = Math.ceil(sortedNodes.length * percentage);
+                const layerNodes = sortedNodes.slice(currentIndex, currentIndex + nodesInLayer);
+                if (layerNodes.length > 0) {
+                    layers.push(layerNodes);
+                }
+                currentIndex += nodesInLayer;
+            });
+
+            // Calculate dynamic dimensions
+            const maxNodesInLayer = Math.max(...layers.map(layer => layer.length));
+            const nodeSpacing = 100;
+            const layerSpacing = 150;
+            const nodeRadius = 25;
+
+            const svgWidth = Math.max(1200, maxNodesInLayer * nodeSpacing + 200);
+            const svgHeight = layers.length * layerSpacing + 200;
+
+            const svg = d3.select('#flowchart-svg')
+                .attr('width', svgWidth)
+                .attr('height', svgHeight);
+
+            // Clear previous content
+            svg.selectAll("*").remove();
+
+            const margin = { top: 100, right: 100, bottom: 100, left: 100 };
+            const g = svg.append("g")
+                .attr("transform", `translate(${margin.left},${margin.top})`);
+
+            // Calculate node positions
+            const nodePositions = new Map();
+
+            layers.forEach((layer, layerIndex) => {
+                const layerWidth = svgWidth - margin.left - margin.right;
+                const startX = (layerWidth - (layer.length - 1) * nodeSpacing) / 2;
+
+                layer.forEach((node, nodeIndex) => {
+                    nodePositions.set(node.cluster_id, {
+                        x: startX + nodeIndex * nodeSpacing,
+                        y: layerIndex * layerSpacing
+                    });
+                });
+            });
+
+            // Filter edges based on selected rollout
+            let edgesToShow = edges;
+            if (selectedRolloutId !== null) {
+                const selectedRollout = data.rollouts.find(r =>
+                    (r.rollout_id || r.index) === selectedRolloutId
+                );
+                if (selectedRollout) {
+                    edgesToShow = selectedRollout.edges;
+                }
+            }
+
+            // Add arrow markers
+            const defs = svg.append("defs");
+            defs.append("marker")
+                .attr("id", "arrowhead")
+                .attr("viewBox", "0 -5 10 10")
+                .attr("refX", 15)
+                .attr("refY", 0)
+                .attr("markerWidth", 8)
+                .attr("markerHeight", 8)
+                .attr("orient", "auto")
+                .append("path")
+                .attr("d", "M0,-5L10,0L0,5")
+                .attr("fill", "#374151");
+
+            // Create edges with consistent opacity but varying thickness
+            const edgeGroup = g.append("g").attr("class", "edges");
+
+            // Group edges by path to calculate thickness
+            const edgePaths = new Map();
+            edgesToShow.forEach(edge => {
+                const sourceId = (edge.from_cluster || edge.node_a || '').toString();
+                const targetId = (edge.to_cluster || edge.node_b || '').toString();
+                const pathKey = `${sourceId}-${targetId}`;
+                edgePaths.set(pathKey, (edgePaths.get(pathKey) || 0) + 1);
+            });
+
+            edgesToShow.forEach(edge => {
+                const sourceId = (edge.from_cluster || edge.node_a || '').toString();
+                const targetId = (edge.to_cluster || edge.node_b || '').toString();
+                const sourcePos = nodePositions.get(sourceId);
+                const targetPos = nodePositions.get(targetId);
+
+                if (sourcePos && targetPos) {
+                    const pathKey = `${sourceId}-${targetId}`;
+                    const pathCount = edgePaths.get(pathKey) || 1;
+                    const edgeWidth = Math.max(1, Math.min(6, pathCount / 5));
+
+                    edgeGroup.append("line")
+                        .attr("x1", sourcePos.x)
+                        .attr("y1", sourcePos.y)
+                        .attr("x2", targetPos.x)
+                        .attr("y2", targetPos.y)
+                        .attr("class", "edge")
+                        .attr("stroke", "#6b7280")
+                        .attr("stroke-width", edgeWidth)
+                        .attr("opacity", 0.7)
+                        .attr("marker-end", "url(#arrowhead)");
+                }
+            });
+
+            // Create nodes with consistent sizing
+            const nodeGroup = g.append("g").attr("class", "nodes");
+
+            nodes.forEach(node => {
+                const pos = nodePositions.get(node.cluster_id);
+                if (!pos) return;
+
+                const nodeElement = nodeGroup.append("g")
+                    .attr("class", "node")
+                    .attr("transform", `translate(${pos.x}, ${pos.y})`);
+
+                // Node circle with consistent size
+                nodeElement.append("circle")
+                    .attr("r", nodeRadius)
+                    .attr("fill", "#3b82f6")
+                    .attr("stroke", "#1e40af")
+                    .attr("stroke-width", 2);
+
+                // Node text
+                nodeElement.append("text")
+                    .attr("dy", "0.35em")
+                    .attr("font-size", "14px")
+                    .attr("font-weight", "600")
+                    .attr("fill", "white")
+                    .text(node.cluster_id);
+
+                // Click handler
+                nodeElement.on("click", () => {
+                    showNodeModal(node);
+                });
+
+                // Hover effects
+                nodeElement.on("mouseover", function () {
+                    d3.select(this).select("circle")
+                        .attr("fill", "#2563eb")
+                        .attr("r", nodeRadius + 3);
+                });
+
+                nodeElement.on("mouseout", function () {
+                    d3.select(this).select("circle")
+                        .attr("fill", "#3b82f6")
+                        .attr("r", nodeRadius);
+                });
+            });
+
+            // Add layer labels
+            layers.forEach((layer, layerIndex) => {
+                const maxOutgoing = Math.max(...layer.map(n => outgoingEdges.get(n.cluster_id) || 0));
+                g.append("text")
+                    .attr("x", -20)
+                    .attr("y", layerIndex * layerSpacing)
+                    .attr("text-anchor", "end")
+                    .attr("dy", "0.35em")
+                    .attr("font-size", "12px")
+                    .attr("fill", "#6b7280")
+                    .text(`Layer ${layerIndex + 1} (${layer.length} nodes, max ${maxOutgoing} outgoing)`);
+            });
+        }
+
+        function updateSidebar(data) {
+            const sidebar = document.getElementById('sidebar');
+            const content = document.getElementById('rolloutContent');
+
+            if (!data.rollouts || data.rollouts.length === 0) {
+                content.innerHTML = `
+                    <div class="no-rollouts">
+                        <h3>No Rollouts Available</h3>
+                        <p>This flowchart contains ${data.nodes.length} clusters but no rollout paths to visualize.</p>
+                    </div>
+                    <div class="stats-box">
+                        <h4>Statistics</h4>
+                        <p>Total Nodes: ${data.nodes.length}</p>
+                        <p>Total Edges: ${data.edges ? data.edges.length : 0}</p>
+                        <p>Total Rollouts: 0</p>
+                    </div>
+                `;
+            } else {
+                const maxRollout = data.rollouts.length - 1;
+                content.innerHTML = `
+                    <div style="margin-bottom: 1.5rem;">
+                        <label style="display: flex; align-items: center; cursor: pointer;">
+                            <input type="radio" name="rollout" value="" ${selectedRolloutId === null ? 'checked' : ''} 
+                                   onchange="selectRollout(null)" style="margin-right: 0.75rem;">
+                            <span style="font-weight: 500;">Show All Edges</span>
+                        </label>
+                        <p style="font-size: 0.875rem; color: #6b7280; margin-left: 1.5rem; margin-top: 0.25rem;">
+                            Display all edges with thickness based on frequency
+                        </p>
+                    </div>
+                    <div class="rollout-slider-container">
+                        <h3 style="font-size: 1.125rem; font-weight: 500; margin-bottom: 1rem;">Rollout Slider</h3>
+                        <input type="range" min="0" max="${maxRollout}" value="${selectedRolloutId || 0}" 
+                               class="rollout-slider" id="rolloutSlider" 
+                               oninput="selectRolloutFromSlider(this.value)">
+                        <div class="rollout-info">
+                            <span>Rollout: <span id="currentRollout">${selectedRolloutId !== null ? selectedRolloutId : 'All'}</span></span>
+                            <span>Total: ${data.rollouts.length}</span>
+                        </div>
+                    </div>
+                    <div class="stats-box">
+                        <h4>Statistics</h4>
+                        <p>Total Rollouts: ${data.rollouts.length}</p>
+                        <p>Total Nodes: ${data.nodes.length}</p>
+                        <p>Total Edges: ${data.edges ? data.edges.length : 0}</p>
+                        ${selectedRolloutId !== null ? `<p style="color: #3b82f6; font-weight: 500;">Selected: ${selectedRolloutId}</p>` : ''}
+                    </div>
+                `;
+            }
+
+            sidebar.style.display = 'block';
+        }
+
+        function selectRollout(rolloutId) {
+            selectedRolloutId = rolloutId;
+            if (currentData) {
+                renderVisualization(currentData);
+                updateSidebar(currentData);
+            }
+        }
+
+        function selectRolloutFromSlider(value) {
+            const rolloutId = parseInt(value);
+            selectedRolloutId = rolloutId;
+            document.getElementById('currentRollout').textContent = rolloutId;
+
+            if (currentData) {
+                renderVisualization(currentData);
+            }
+        }
+
+        function showNodeModal(node) {
+            document.getElementById('modalTitle').textContent = `Cluster ${node.cluster_id}`;
+            document.getElementById('modalStats').innerHTML = `
+                <strong>Frequency:</strong> ${node.freq} | 
+                <strong>Mean Similarity:</strong> ${node.mean_similarity.toFixed(3)}
+            `;
+
+            document.getElementById('representativeSentence').innerHTML = `
+                <h3 style="margin-bottom: 0.5rem;">Representative Sentence:</h3>
+                <div class="representative-sentence">${node.representative_sentence}</div>
+            `;
+
+            const sentencesHtml = node.sentences.map(sentence => `
+                <div class="sentence-item">
+                    <div class="sentence-header">
+                        <span class="sentence-count">Count: ${sentence.count}</span>
+                        <span class="sentence-rollouts">
+                            Rollouts: ${sentence.rollout_ids.length > 0 ? sentence.rollout_ids.join(', ') : 'None'}
+                        </span>
+                    </div>
+                    <div class="sentence-text">${sentence.text}</div>
+                </div>
+            `).join('');
+
+            document.getElementById('sentencesList').innerHTML = sentencesHtml;
+            document.getElementById('nodeModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('nodeModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function (event) {
+            const modal = document.getElementById('nodeModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+
+</html>

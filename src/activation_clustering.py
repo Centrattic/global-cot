@@ -240,26 +240,27 @@ def export_activation_clusters_to_flowchart_json(
         for s_idx in member_indices:
             sentence_to_cluster[sentences[s_idx]] = cluster_id
 
-    rollouts = []
+    rollouts = {}
     for response_index, rollout_sentences_list in rollout_sentences.items():
         edges = []
-        prev_cluster = None
         
-        for sentence in rollout_sentences_list:
-            if sentence in sentence_to_cluster:
-                current_cluster = sentence_to_cluster[sentence]
-                if prev_cluster is not None and prev_cluster != current_cluster:
-                    edges.append({
-                        "node_a": str(prev_cluster),
-                        "node_b": str(current_cluster)
-                    })
-                prev_cluster = current_cluster
+        # Create edges between consecutive sentences
+        for i in range(len(rollout_sentences_list) - 1):
+            current_sentence = rollout_sentences_list[i]
+            next_sentence = rollout_sentences_list[i + 1]
+            
+            if current_sentence in sentence_to_cluster and next_sentence in sentence_to_cluster:
+                current_cluster = sentence_to_cluster[current_sentence]
+                next_cluster = sentence_to_cluster[next_sentence]
+                
+                edges.append({
+                    "node_a": str(current_cluster),
+                    "node_b": str(next_cluster)
+                })
         
+        # Only include rollouts that have edges (i.e., at least 2 sentences)
         if edges:
-            rollouts.append({
-                "index": response_index,
-                "edges": edges
-            })
+            rollouts[str(response_index)] = edges
 
     flowchart_data = {
         "nodes": nodes,
@@ -378,6 +379,6 @@ if __name__ == "__main__":
     # 0.99: 13131 clusters
     # 0.995: 21746 clusters
 
-    thresholds = [0.96]
+    thresholds = [0.955]
     explore_activation_thresholds(
         processed_responses_path, activation_cache_dir, layer, thresholds, "flowcharts")
