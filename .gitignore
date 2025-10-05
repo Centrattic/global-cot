@@ -9,3 +9,5 @@ logs/
 responses/
 similarity_cache/
 *.zip
+node_modules
+.next

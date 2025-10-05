@@ -11,20 +11,31 @@ def load_activations_from_processed_responses(
     processed_responses_path: str,
     activation_cache_dir: str,
     layer: int,
-) -> Tuple[List[str], np.ndarray, Dict[int, Set[int]]]:
+) -> Tuple[List[str], np.ndarray, Dict[int, Set[int]], Set[int]]:
     """Load activations for all sentences from processed responses."""
     print(f"Loading activations for layer {layer}...")
+    
+    # Sentence to filter out
+    filtered_sentence = "We need to find base-16 number 66666 (hex). Convert to decimal? 6*16^4 +6*16^3+6*16^2+6*16+6. Let's compute: 16^4=65536. times6=393216. 16^3=4096*6=24576. 16^2=256*6=1536. 16*6=96. plus6. Sum=393216+24576=417792. +1536=419328. +96=419424. +6=419430. So decimal 419430. Now binary length? Need floor(log2(n))+1. log2(419430). 2^19=524288. 2^18=262144. 419430 between."
     
     responses = load_json(processed_responses_path)
     all_sentences = []
     all_activations = []
     sentence_index_to_rollout_ids = {}
+    excluded_rollouts = set()  # Track rollouts with sentences > 200 chars
     
     for response in tqdm(responses, desc="Loading responses"):
         response_index = response.get("index")
         sentences = response.get("sentences", [])
         
         if not response_index or not sentences:
+            continue
+            
+        # Check if any sentence in this rollout is > 150 characters
+        has_long_sentence = any(len(sentence) > 150 for sentence in sentences)
+        if has_long_sentence:
+            excluded_rollouts.add(response_index)
+            print(f"Excluding rollout {response_index} due to sentence > 150 characters")
             continue
             
         activation_file = os.path.join(activation_cache_dir, str(layer), f"completion_{response_index}.npy")
@@ -37,6 +48,11 @@ def load_activations_from_processed_responses(
         activation_data = np.load(activation_file, allow_pickle=True).item()
         
         for sentence_idx, sentence in enumerate(sentences):
+            # Filter out the specific sentence
+            if sentence == filtered_sentence:
+                print(f"Filtering out sentence from response {response_index}")
+                continue
+                
             if sentence in activation_data:
                 all_sentences.append(sentence)
                 all_activations.append(activation_data[sentence])
@@ -49,12 +65,13 @@ def load_activations_from_processed_responses(
     
     if not all_activations:
         print("No activations found!")
-        return [], np.array([]), {}
+        return [], np.array([]), {}, excluded_rollouts
     
     activations = np.array(all_activations)
-    print(f"Loaded {len(all_sentences)} sentences with activations")
+    print(f"Loaded {len(all_sentences)} sentences with activations (after filtering)")
+    print(f"Excluded {len(excluded_rollouts)} rollouts due to long sentences")
     
-    return all_sentences, activations, sentence_index_to_rollout_ids
+    return all_sentences, activations, sentence_index_to_rollout_ids, excluded_rollouts
 
 
 def cluster_activations_by_cosine_threshold(
@@ -173,10 +190,21 @@ def export_activation_clusters_to_flowchart_json(
     sentences: List[str],
     sentence_index_to_rollout_ids: Dict[int, Set[int]],
     layer: int,
-    threshold: float
+    threshold: float,
+    processed_responses_path: str,
+    excluded_rollouts: Set[int]
 ):
     """Export activation clusters to flowchart JSON format."""
     print("Exporting clusters to flowchart JSON...")
+    
+    # Load processed responses to get response content and correctness
+    responses = load_json(processed_responses_path)
+    response_index_to_content = {}
+    response_index_to_correctness = {}
+    for response in responses:
+        response_index = response.get("index")
+        response_index_to_content[response_index] = response.get("response_content", "")
+        response_index_to_correctness[response_index] = response.get("correctness", False)
     
     # Group sentences by cluster
     cluster_id_to_members: Dict[int, List[int]] = {}
@@ -225,6 +253,26 @@ def export_activation_clusters_to_flowchart_json(
             "sentences": sentences_list
         })
 
+    # Add response nodes
+    print("Building response nodes...")
+    response_cluster_id_to_content = {}
+    for response_index, response_content in response_index_to_content.items():
+        if response_content:  # Only add if response content exists
+            response_cluster_id = f"response-{response_content}"
+            if response_cluster_id not in response_cluster_id_to_content:
+                response_cluster_id_to_content[response_cluster_id] = response_content
+                nodes.append({
+                    "cluster_id": response_cluster_id,
+                    "freq": 1,  # Each response appears once
+                    "representative_sentence": response_content,
+                    "mean_similarity": 0.0,  # No similarity computation for response nodes
+                    "sentences": [{
+                        "text": response_content,
+                        "count": 1,
+                        "rollout_ids": [response_index]
+                    }]
+                })
+
     print("Building rollouts...")
     rollout_sentences: Dict[int, List[str]] = {}
     for s_idx, response_indices in sentence_index_to_rollout_ids.items():
@@ -240,9 +288,13 @@ def export_activation_clusters_to_flowchart_json(
         for s_idx in member_indices:
             sentence_to_cluster[sentences[s_idx]] = cluster_id
 
+    # Get all response indices from processed_responses.json, excluding those with long sentences
+    all_response_indices = set(response_index_to_content.keys()) - excluded_rollouts
+    
     rollouts = {}
-    for response_index, rollout_sentences_list in rollout_sentences.items():
+    for response_index in all_response_indices:
         edges = []
+        rollout_sentences_list = rollout_sentences.get(response_index, [])
         
         # Create edges between consecutive sentences
         for i in range(len(rollout_sentences_list) - 1):
@@ -258,9 +310,26 @@ def export_activation_clusters_to_flowchart_json(
                     "node_b": str(next_cluster)
                 })
         
-        # Only include rollouts that have edges (i.e., at least 2 sentences)
-        if edges:
-            rollouts[str(response_index)] = edges
+        # Add final edge from last sentence to response node
+        if rollout_sentences_list and response_index in response_index_to_content:
+            last_sentence = rollout_sentences_list[-1]
+            response_content = response_index_to_content[response_index]
+            
+            if last_sentence in sentence_to_cluster and response_content:
+                last_cluster = sentence_to_cluster[last_sentence]
+                response_cluster_id = f"response-{response_content}"
+                
+                edges.append({
+                    "node_a": str(last_cluster),
+                    "node_b": response_cluster_id
+                })
+        
+        # Include all rollouts, even if they have no edges (empty list)
+        correctness = response_index_to_correctness.get(response_index, False)
+        rollouts[str(response_index)] = {
+            "edges": edges,
+            "correctness": correctness
+        }
 
     flowchart_data = {
         "nodes": nodes,
@@ -282,7 +351,7 @@ def cluster_activations(
     """Main function to cluster activations and export flowchart."""
     print(f"Starting activation clustering for layer {layer} with threshold {threshold}")
     
-    sentences, activations, sent_idx_to_rollout_ids = load_activations_from_processed_responses(
+    sentences, activations, sent_idx_to_rollout_ids, excluded_rollouts = load_activations_from_processed_responses(
         processed_responses_path, activation_cache_dir, layer)
     
     print(f"Clustering {len(sentences)} sentences with threshold {threshold}...")
@@ -291,7 +360,7 @@ def cluster_activations(
     
     # Export full flowchart JSON
     export_activation_clusters_to_flowchart_json(
-        out_json_path, labels, activations, sentences, sent_idx_to_rollout_ids, layer, threshold)
+        out_json_path, labels, activations, sentences, sent_idx_to_rollout_ids, layer, threshold, processed_responses_path, excluded_rollouts)
 
 
 def explore_activation_thresholds(
@@ -304,7 +373,7 @@ def explore_activation_thresholds(
     """Explore different thresholds for activation clustering."""
     print(f"Exploring activation thresholds for layer {layer}")
     
-    sentences, activations, sentence_index_to_rollout_ids = load_activations_from_processed_responses(
+    sentences, activations, sentence_index_to_rollout_ids, excluded_rollouts = load_activations_from_processed_responses(
         processed_responses_path, activation_cache_dir, layer)
     
     os.makedirs(out_dir, exist_ok=True)
@@ -356,13 +425,13 @@ def explore_activation_thresholds(
         # Export flowchart for this threshold
         out_json_path = os.path.join(out_dir, f"flowchart_layer_{layer}_threshold_{threshold}.json")
         export_activation_clusters_to_flowchart_json(
-            out_json_path, labels, activations, sentences, sentence_index_to_rollout_ids, layer, threshold)
+            out_json_path, labels, activations, sentences, sentence_index_to_rollout_ids, layer, threshold, processed_responses_path, excluded_rollouts)
 
 
 if __name__ == "__main__":
     # Example usage
-    processed_responses_path = "/home/ubuntu/riya-probing/global-cot/processed_responses.json"
-    activation_cache_dir = "/home/ubuntu/riya-probing/global-cot/activation_cache"
+    processed_responses_path = "processed_responses.json"
+    activation_cache_dir = "activation_cache"
     
     # Single threshold clustering
     layer = 17
@@ -379,6 +448,6 @@ if __name__ == "__main__":
     # 0.99: 13131 clusters
     # 0.995: 21746 clusters
 
-    thresholds = [0.955]
+    thresholds = [0.98, 0.985, 0.99]
     explore_activation_thresholds(
         processed_responses_path, activation_cache_dir, layer, thresholds, "flowcharts")

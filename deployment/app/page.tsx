@@ -82,18 +82,33 @@ export default function Home() {
         <div className="container">
             <div className="header">
                 <h1>Flowchart Visualizer</h1>
-                <div className="file-selector">
-                    <label htmlFor="fileSelect">Select Flowchart:</label>
-                    <select
-                        id="fileSelect"
-                        value={selectedFile}
-                        onChange={(e) => setSelectedFile(e.target.value)}
-                    >
-                        <option value="">Choose a file...</option>
-                        {files.map(file => (
-                            <option key={file} value={file}>{file}</option>
-                        ))}
-                    </select>
+                <div className="header-controls">
+                    <div className="file-selector">
+                        <label htmlFor="fileSelect">Select Flowchart:</label>
+                        <select
+                            id="fileSelect"
+                            value={selectedFile}
+                            onChange={(e) => setSelectedFile(e.target.value)}
+                        >
+                            <option value="">Choose a file...</option>
+                            {files.map(file => (
+                                <option key={file} value={file}>{file}</option>
+                            ))}
+                        </select>
+                    </div>
+                    {data && (
+                        <div className="rollout-selector">
+                            <label htmlFor="rolloutInput">Rollouts:</label>
+                            <input
+                                id="rolloutInput"
+                                type="text"
+                                className="rollout-input"
+                                placeholder="e.g., 5, 7-9, 11, 19, 100-102"
+                                value={rolloutInput}
+                                onChange={(e) => handleRolloutInputChange(e.target.value)}
+                            />
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -113,29 +128,6 @@ export default function Home() {
                             data={data}
                             selectedRollouts={selectedRollouts}
                         />
-                    )}
-                </div>
-
-                <div className="rollout-controls">
-                    <h2>Rollout Selection</h2>
-                    <input
-                        type="text"
-                        className="rollout-input"
-                        placeholder="e.g., 1, 2-5, 10"
-                        value={rolloutInput}
-                        onChange={(e) => handleRolloutInputChange(e.target.value)}
-                    />
-
-                    {data && (
-                        <div className="stats">
-                            <h3>Statistics</h3>
-                            <p>Total Nodes: {data.nodes.length}</p>
-                            <p>Total Rollouts: {Array.isArray(data.rollouts) ? data.rollouts.length : Object.keys(data.rollouts).length}</p>
-                            <p>Selected Rollouts: {selectedRollouts.length}</p>
-                            {selectedRollouts.length > 0 && (
-                                <p>Showing: {selectedRollouts.slice(0, 5).join(', ')}{selectedRollouts.length > 5 ? '...' : ''}</p>
-                            )}
-                        </div>
                     )}
                 </div>
             </div>

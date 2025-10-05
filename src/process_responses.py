@@ -124,7 +124,7 @@ def process_responses():
         )
 
     # Write consolidated output
-    output_file = "/home/ubuntu/riya-probing/global-cot/processed_responses.json"
+    output_file = "processed_responses.json"
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(processed_responses, f, indent=2, ensure_ascii=False)
 

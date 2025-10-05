@@ -1,0 +1,13 @@
+{
+    "name": "global-cot",
+    "version": "1.0.0",
+    "private": true,
+    "scripts": {
+        "dev": "cd deployment && npm run dev",
+        "build": "cd deployment && npm run build",
+        "start": "cd deployment && npm run start",
+        "lint": "cd deployment && npm run lint",
+        "ngrok": "cd deployment && npm run ngrok",
+        "install": "cd deployment && npm install"
+    }
+}

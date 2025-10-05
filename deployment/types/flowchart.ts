@@ -20,9 +20,15 @@ export interface Edge {
 export interface Rollout {
     index: string;
     edges: Edge[];
+    correctness?: boolean;
+}
+
+export interface RolloutObject {
+    edges: Edge[];
+    correctness?: boolean;
 }
 
 export interface FlowchartData {
     nodes: Node[];
-    rollouts: { [key: string]: Edge[] } | Rollout[];
+    rollouts: { [key: string]: RolloutObject } | Rollout[];
 }
