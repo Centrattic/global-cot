@@ -14,6 +14,7 @@ export default function FlowchartVisualization({ data, selectedRollouts }: Flowc
     const [selectedNode, setSelectedNode] = useState<Node | null>(null)
     const [hoveredRollout, setHoveredRollout] = useState<string | null>(null)
     const [validRollouts, setValidRollouts] = useState<string[]>([])
+    const [currentTransform, setCurrentTransform] = useState<d3.ZoomTransform | null>(null)
 
     // Function to animate ball along rollout path
     const animateBallAlongPath = (rolloutId: string, path: string[], nodePositions: Map<string, { x: number; y: number }>) => {
@@ -173,16 +174,23 @@ export default function FlowchartVisualization({ data, selectedRollouts }: Flowc
 
         svg.attr('width', width).attr('height', height)
 
+        const g = svg.append('g')
+
         // Add zoom behavior
         const zoom = d3.zoom<SVGSVGElement, unknown>()
             .scaleExtent([0.1, 4])
             .on('zoom', (event) => {
                 g.attr('transform', event.transform)
+                setCurrentTransform(event.transform)
             })
 
         svg.call(zoom)
 
-        const g = svg.append('g')
+        // Apply saved transform if it exists
+        if (currentTransform) {
+            g.attr('transform', currentTransform.toString())
+            svg.call(zoom.transform, currentTransform)
+        }
 
         // Position nodes in tree layout
         const nodeToRollouts = new Map<string, string[]>()
@@ -227,8 +235,8 @@ export default function FlowchartVisualization({ data, selectedRollouts }: Flowc
 
         // Calculate positions for each level
         const sortedLevels = Array.from(levelGroups.keys()).sort((a, b) => a - b)
-        const levelSpacing = width / (sortedLevels.length + 1)
-        const nodeSpacing = 80
+        const levelSpacing = Math.max(300, width / (sortedLevels.length + 1)) // Increased horizontal spacing
+        const nodeSpacing = 80 // Reverted to original vertical spacing
 
         sortedLevels.forEach((level, levelIndex) => {
             const nodesInLevel = levelGroups.get(level)!
