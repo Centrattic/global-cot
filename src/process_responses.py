@@ -105,8 +105,8 @@ def process_responses():
 
         # Create processed entry
         processed_entry = {
-            "response_index": response_data.get("index", 0),
             "processed_index": processed_index,
+            "index": response_data.get("index", 0),
             "cot_content": response_data.get("cot_content", ""),
             "response_content": response_data.get("response_content", ""),
             "processed_response_content": processed_response_content,

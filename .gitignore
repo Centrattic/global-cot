@@ -7,3 +7,4 @@ unsloth_compiled_cache/
 logs/
 .ipynb_checkpoints/
 responses/
+similarity_cache/
